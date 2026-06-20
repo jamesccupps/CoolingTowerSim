@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Condenser-Water Loop — Control Bench (v4)</title>
+<style>
+:root{
+  /* DARK MODE ALWAYS — the dark palette is applied unconditionally (no prefers-color-scheme branch),
+     so the bench renders dark regardless of OS setting. color-scheme:dark also darkens native controls. */
+  color-scheme:dark;
+  --text:#e8e6dd; --text2:#b0ada3; --text3:#9a988f;
+  --bg:#1b1a17; --bg1:#26241f; --bg2:#2f2d28; --bg3:#201e1a;
+  --info-bg:#0c2a44; --info-tx:#85b7eb; --info-bd:#378add;
+  --warn-bg:#3a2c10; --warn-tx:#e0b060; --warn-bd:#c98a00;
+  --bd2:rgba(255,255,255,0.30); --bd3:rgba(255,255,255,0.14);
+  --dng-bg:#3a1414; --dng-tx:#f09595;
+  --pill:rgba(20,19,16,0.74);
+  --r:8px; --r2:12px;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:var(--sans);color:var(--text);background:var(--bg);margin:0;padding:18px;line-height:1.45}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-size:18px;font-weight:600;margin:0 0 2px}
+.sub{font-size:12.5px;color:var(--text2);margin:0 0 12px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+button{font:inherit;font-size:12.5px;padding:5px 11px;border:0.5px solid var(--bd2);background:var(--bg1);color:var(--text);border-radius:var(--r);cursor:pointer}
+button:hover{background:var(--bg2)} button:active{transform:scale(.98)}
+.runbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--bg2);border:0.5px solid var(--bd3);border-radius:var(--r2);padding:9px 11px;margin-bottom:12px;position:sticky;top:8px;z-index:5}
+.runbar .grow{flex:1}
+.scene{background:var(--bg1);border:0.5px solid var(--bd3);border-radius:var(--r2);padding:6px 8px;margin-bottom:6px}
+.flagbadge{display:none;font-size:11px;font-weight:600;padding:2px 7px;border-radius:6px;background:var(--dng-bg);color:var(--dng-tx)}
+.flagbadge.show{display:inline-block}
+details{background:var(--bg2);border:0.5px solid var(--bd3);border-radius:var(--r2);margin-bottom:10px;overflow:hidden}
+summary{cursor:pointer;padding:10px 13px;font-weight:600;font-size:13px;list-style:none;user-select:none;display:flex;align-items:center;gap:8px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"›";font-size:16px;line-height:1;transform:rotate(90deg);transition:transform .15s;color:var(--text3)}
+details:not([open]) summary::before{transform:rotate(0deg)}
+summary .hint{font-weight:400;color:var(--text3);font-size:11.5px;margin-left:auto}
+.body{padding:4px 13px 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:9px 18px}
+.ctl{min-width:0}
+.ctop{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text2);gap:8px}
+.cval{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--info-bd);margin:3px 0 1px}
+input[type=range]:disabled{opacity:.4}
+.actrow{display:grid;grid-template-columns:118px 132px 1fr;align-items:center;gap:10px;padding:5px 0;border-bottom:0.5px solid var(--bd3)}
+.actrow:last-child{border-bottom:0}
+.actrow .nm{font-size:13px;font-weight:600}
+.actrow .nm small{display:block;font-weight:400;color:var(--text3);font-size:11px}
+.seg{display:inline-flex;border:0.5px solid var(--bd2);border-radius:var(--r);overflow:hidden}
+.seg button{border:0;border-radius:0;padding:4px 10px;background:var(--bg1);font-size:12px}
+.seg button.on{background:var(--info-bg);color:var(--info-tx);font-weight:600}
+.actslider{min-width:0}
+.actslider .cval{font-size:12px;color:var(--text2)}
+.tog{padding:4px 10px;border-radius:var(--r);border:0.5px solid var(--bd2);background:var(--bg1);font-size:12px}
+.tog.on{background:var(--info-bg);color:var(--info-tx);border-color:var(--info-bd);font-weight:600}
+.modebtns{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:2px 0 10px}
+.modebtns span{font-size:12.5px;color:var(--text2)}
+.note{font-size:11.5px;color:var(--text2);background:var(--bg3);border-radius:var(--r);padding:7px 10px;margin:2px 0 10px}
+.legend{display:flex;align-items:center;gap:10px;margin:2px 2px 8px;font-size:12px;color:var(--text2);flex-wrap:wrap}
+.btn.on{background:var(--info-bg);color:var(--info-tx);border-color:var(--info-bd);font-weight:600}
+text{font-family:var(--sans)}
+.lbl{fill:var(--text2);font-size:12px}
+.tag{fill:var(--text);font-size:12.5px;font-weight:600}
+.val{fill:var(--text);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.equip{stroke:var(--bd2);fill:none;stroke-width:1}
+.faint{stroke:var(--bd3);fill:none;stroke-width:0.75}
+.pillbg{fill:var(--pill);stroke:var(--bd3);stroke-width:0.5}
+
+/* ===================== presentation layer (v4) ===================== */
+.hdr{margin:0 0 16px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin:0 0 7px}
+.hdr h1{font-size:23px;font-weight:650;letter-spacing:-.012em;line-height:1.14;margin:0 0 8px}
+.hdr h1 .accent{color:var(--info-bd)}
+.lede{font-size:13.5px;color:var(--text2);max-width:72ch;margin:0;line-height:1.5}
+hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),transparent);border:0;margin:13px 0 0}
+/* live readout faceplate */
+.kpibar{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--bd3);border:0.5px solid var(--bd3);border-radius:var(--r2);overflow:hidden;margin-bottom:12px}
+.kpi{background:var(--bg1);padding:9px 12px 11px;min-width:0}
+.kpi .k-l{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .k-v{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;margin-top:3px;line-height:1.1}
+.kpi .k-s{font-family:var(--mono);font-size:10.5px;color:var(--text3);font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:720px){.kpibar{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:430px){.kpibar{grid-template-columns:repeat(2,1fr)}}
+/* model-basis panel */
+.about .body{padding:8px 15px 16px}
+.about h4{font-size:11.5px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);margin:15px 0 6px}
+.about h4:first-child{margin-top:2px}
+.about p{font-size:12.8px;color:var(--text2);margin:0 0 9px;max-width:80ch;line-height:1.55}
+.about ul.limit{margin:0;padding-left:19px}
+.about ul.limit li{font-size:12.8px;color:var(--text2);margin:0 0 7px;max-width:80ch;line-height:1.5}
+.about ul.limit li::marker{color:var(--warn-bd)}
+.about b{color:var(--text);font-weight:600}
+.specrow{display:flex;flex-wrap:wrap;gap:6px 7px;margin:3px 0 9px}
+.chip{font-family:var(--mono);font-size:11px;color:var(--text2);background:var(--bg3);border:0.5px solid var(--bd3);border-radius:6px;padding:3px 9px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hdr">
+  <p class="eyebrow">Commercial Office Building · Building Automation</p>
+  <h1>Condenser-Water Cooling Loop — <span class="accent">Control Bench</span></h1>
+  <p class="lede">A physics-based simulation of the building’s condenser-water system — two evaporative cooling-tower cells and the lead/standby condenser-water pumps — used to rehearse control sequences, test setpoints, and compare staging strategies before touching the live plant. The engine is calibrated to field telemetry from the building automation system.</p>
+  <hr class="rule">
+</div>
+<h2 class="sr-only">Interactive animated mimic of the condenser-water cooling loop with manual overrides, adjustable setpoints, sequencing and model constants.</h2>
+
+<details class="about"><summary>About this model <span class="hint">what it is, how it’s calibrated, what it can’t yet do</span></summary>
+<div class="body">
+  <h4>What this is</h4>
+  <p>A transient, physics-based simulation of the building’s condenser-water loop — a <b>control and efficiency test bench</b> for rehearsing the cooling-tower sequence, trying setpoints, and weighing pump and fan staging against energy use. It is not a data historian. The same calibrated engine runs here and in the headless model used for analysis.</p>
+  <h4>The real system it represents</h4>
+  <p>A <b>~560-ton open evaporative tower</b> — two counterflow cells (<b>CT-1 / CT-2</b>), 564 nominal tons, with (2) 25 HP induced-draft fans — rejects building heat to outdoor air. Two <b>75 HP</b> vertical-inline pumps (<b>CTP-1 / CTP-2</b>, lead/standby, one running at a time) circulate condenser water to the building’s water-source heat pumps, AHU compressors, and computer-room cooling. One cell is currently out of service, which is why single-cell operation is a first-class mode here. <b>Note:</b> the in-service tower is currently packed with excess fill media, so it is air-side-limited and under-performs its nameplate — the model is calibrated to the tower <i>as it runs today</i>, to be re-fit when the corrected-media tower comes online.</p>
+  <h4>What’s under the hood</h4>
+  <div class="specrow">
+    <span class="chip">pump affinity laws + mfr head curve</span>
+    <span class="chip">series / parallel hydraulic resistances</span>
+    <span class="chip">ε-NTU + air-side Merkel tower</span>
+    <span class="chip">wet-bulb enthalpy driving force</span>
+    <span class="chip">first-order thermal transport</span>
+    <span class="chip">documented control sequence</span>
+  </div>
+  <p>The bench is modeled on the <b>actual installed equipment</b>, not just automation data. The pump head curve is the manufacturer submittal; the cooling-tower capacity, fan power, and basin volume are the tower nameplate and engineering data; the condenser-water piping is the real Sch 40 runs — sizes and lengths taken off the building prints; and the setpoints and control logic are the building’s own sequence of operations. The BAS field trends then calibrate the loop resistances and validate the result against measured flow, pressure, and temperature — but the equipment skeleton is the real plant.</p>
+  <p>Hydraulic resistances, the pump differential-pressure curve, the loop transport volumes, and the tower air-side cap were fit to BAS field trends (pump DP, loop flow, supply and return temperature, wet-bulb). The tower’s peak effectiveness is <b>anchored to the tower nameplate (ε<sub>max</sub> = 0.588)</b> and held there pending better data — it is not fit to field. At a single-cell point on 18 June the model reproduced loop flow and ΔT to within ~1 % at the 55 % pump speed; at 62 % the hydraulic anchor runs about 3 % low on flow.</p>
+  <h4>How to drive it</h4>
+  <p>Press <b>Pause/Run</b> and let the sequence operate the plant, or take any actuator to <b>HAND</b> to override it (including over safeties). Watch the faceplate and the supply-temperature trend; use the <b>power draw</b> figure to weigh the energy cost of staging and setpoint choices.</p>
+  <h4 style="color:var(--warn-tx)">Known limitations — read before drawing conclusions</h4>
+  <ul class="limit">
+    <li><b>Wet-bulb sensitivity is under-modeled.</b> Across the wet-bulb range the modeled tower effectiveness moves only about a fifth of what the field data shows, so against the current (over-packed) tower the model reads roughly <b>5 °F optimistic at the low-wet-bulb corner</b>. This is a model-form limitation — a tower-physics revision is planned, pending a fixed-fan wet-bulb sweep — so the bench is not yet reliable for absolute free-cooling or economizer-hours predictions.</li>
+    <li><b>Loop load is treated as equal to tower heat rejection.</b> The compressor heat-of-rejection uplift (~×1.2) is not applied yet, so rejection and tower duty read conservative relative to the true condenser load.</li>
+    <li><b>The differential-pressure loop is modeled as a function of flow.</b> That is appropriate for this constant-flow building (no per-unit two-way valves — the loads are always flowing), but it cannot reproduce a measured DP-reset schedule.</li>
+    <li><b>The occupied-load floor is calibrated to a single cool, occupied day</b> — and was set from the same day it is checked against, so that match is by construction. A second trend day is needed before trusting the building-load estimate on mild days.</li>
+    <li><b>Thermal response is quasi-steady.</b> Steady-state supply temperature tracks the field trend to about 0.7 °F RMS. The building and return nodes carry no heat capacitance, so a sudden load step gives a slightly sharp return-temperature response; transient accuracy is not yet characterized. Steady-state behavior is the trustworthy part.</li>
+  </ul>
+</div></details>
+
+<div class="runbar">
+  <button id="btn_run" onclick="toggleRun()">Pause</button>
+  <button onclick="doReset()">Reset</button>
+  <span class="grow"></span>
+  <span id="flag_cav" class="flagbadge">CAVITATION</span>
+  <span id="flag_flow" class="flagbadge">LOW FLOW</span>
+  <span id="flag_low" class="flagbadge">LOW CWS</span>
+  <span id="flag_frz" class="flagbadge">FREEZE</span>
+  <span id="flag_oat" class="flagbadge">OAT LOCKOUT</span>
+  <span id="flag_hp" class="flagbadge">OVER HP</span>
+  <span id="flag_air" class="flagbadge">AIR INGEST</span>
+  <span id="flag_ovf" class="flagbadge">BASIN OVERFLOW</span>
+  <span id="flag_dead" class="flagbadge">PUMP DEADHEAD</span>
+  <span id="flag_basin" class="flagbadge">BASIN LOW</span>
+  <span id="flag_dtclamp" class="flagbadge">&Delta;T CLAMPED</span>
+  <span id="t_kw" style="font-size:12px;color:var(--text2);margin-right:6px" title="Live electrical power: tower fans (kW) + pump (kW) — both motor+VFD electrical input. Use it to compare staging/setpoint choices.">— kW</span>
+  <span style="font-size:12.5px;color:var(--text2)" title="Simulation time acceleration (sim-minutes advanced per real second). Low = watch transients unfold; high = settle fast. The pipe-flow animation reflects the real flow rate, not this.">speed</span>
+  <input type="range" id="sl_speed" min="0.1" max="6" step="0.1" value="2" style="width:90px" title="Simulation time acceleration — sim-minutes per real second. Low = watch transients unfold in real time; high = settle fast. The pipe-flow animation always shows the real flow rate, independent of this." oninput="speed=+this.value;var r=document.getElementById('speedrate');if(r)r.textContent=Math.round(speed*10)+' min/s';">
+  <span id="speedrate" style="font-size:11px;color:var(--text3);min-width:44px">20 min/s</span>
+</div>
+
+<div class="kpibar" role="group" aria-label="Live plant readouts">
+  <div class="kpi"><div class="k-l">Supply &middot; CWS</div><div class="k-v" id="k_cws">—</div></div>
+  <div class="kpi"><div class="k-l">Return &middot; CWR</div><div class="k-v" id="k_cwr">—</div></div>
+  <div class="kpi"><div class="k-l">Approach to WB</div><div class="k-v" id="k_appr">—</div></div>
+  <div class="kpi"><div class="k-l">Loop flow</div><div class="k-v" id="k_flow">—</div></div>
+  <div class="kpi"><div class="k-l">Heat rejection</div><div class="k-v" id="k_rej">—</div><div class="k-s" id="k_rej_s">—</div></div>
+  <div class="kpi"><div class="k-l">Power draw</div><div class="k-v" id="k_kw">—</div></div>
+</div>
+
+<div class="scene">
+<svg id="svg" width="100%" viewBox="-16 -26 1184 773" role="img">
+  <title>Condenser-water loop — process schematic</title>
+  <desc>Cooling towers and lead/standby pumps feed the building via a blue cold supply and red warm return main; live values shown at each real sensor/valve location.</desc>
+  <defs>
+    <linearGradient id="bgG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--bg2)"/><stop offset="1" stop-color="var(--bg)"/>
+    </linearGradient>
+    <linearGradient id="panelV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="rgba(255,255,255,0.07)"/>
+      <stop offset="0.5" stop-color="rgba(255,255,255,0)"/>
+      <stop offset="1" stop-color="rgba(0,0,0,0.07)"/>
+    </linearGradient>
+    <radialGradient id="fanShroud" cx="0.4" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="var(--bg1)"/>
+      <stop offset="0.7" stop-color="var(--bg2)"/>
+      <stop offset="1" stop-color="var(--bg3)"/>
+    </radialGradient>
+    <radialGradient id="pumpBody" cx="0.38" cy="0.32" r="0.8">
+      <stop offset="0" stop-color="var(--bg1)"/>
+      <stop offset="0.65" stop-color="var(--bg2)"/>
+      <stop offset="1" stop-color="var(--bg3)"/>
+    </radialGradient>
+    <radialGradient id="gloss" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="rgba(255,255,255,0.55)"/>
+      <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <linearGradient id="windowG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--info-bg)"/>
+      <stop offset="0.55" stop-color="var(--bg1)"/>
+      <stop offset="1" stop-color="var(--info-bg)"/>
+    </linearGradient>
+    <linearGradient id="waterSheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="rgba(255,255,255,0.35)"/>
+      <stop offset="0.5" stop-color="rgba(255,255,255,0.05)"/>
+      <stop offset="1" stop-color="rgba(0,0,0,0.10)"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.2"/></filter>
+  </defs>
+  <rect x="-16" y="-26" width="1184" height="773" fill="url(#bgG)"/>
+  <!-- equipment depth (towers + building) -->
+  <ellipse cx="119.1" cy="212.8" rx="68.6" ry="9" fill="rgba(0,0,0,0.20)" filter="url(#blur)"/>
+  <polygon points="178.6,30.8 178.6,206.8 191.6,195.8 191.6,19.8" fill="var(--bg2)" />
+  <polygon points="178.6,30.8 178.6,206.8 191.6,195.8 191.6,19.8" fill="rgba(0,0,0,0.18)" />
+  <polygon points="178.6,30.8 178.6,206.8 191.6,195.8 191.6,19.8" fill="none" stroke="var(--bd3)" stroke-width="0.75" />
+  <polygon points="46.6,30.8 178.6,30.8 191.6,19.8 59.6,19.8" fill="var(--bg2)" />
+  <polygon points="46.6,30.8 178.6,30.8 191.6,19.8 59.6,19.8" fill="rgba(255,255,255,0.10)" />
+  <polygon points="46.6,30.8 178.6,30.8 191.6,19.8 59.6,19.8" fill="none" stroke="var(--bd3)" stroke-width="0.75" />
+  <rect x="46.6" y="30.8" width="132.0" height="176.0" fill="url(#panelV)"/>
+  <ellipse cx="321.5" cy="212.8" rx="68.6" ry="9" fill="rgba(0,0,0,0.20)" filter="url(#blur)"/>
+  <polygon points="381.0,30.8 381.0,206.8 394.0,195.8 394.0,19.8" fill="var(--bg2)" />
+  <polygon points="381.0,30.8 381.0,206.8 394.0,195.8 394.0,19.8" fill="rgba(0,0,0,0.18)" />
+  <polygon points="381.0,30.8 381.0,206.8 394.0,195.8 394.0,19.8" fill="none" stroke="var(--bd3)" stroke-width="0.75" />
+  <polygon points="249.0,30.8 381.0,30.8 394.0,19.8 262.0,19.8" fill="var(--bg2)" />
+  <polygon points="249.0,30.8 381.0,30.8 394.0,19.8 262.0,19.8" fill="rgba(255,255,255,0.10)" />
+  <polygon points="249.0,30.8 381.0,30.8 394.0,19.8 262.0,19.8" fill="none" stroke="var(--bd3)" stroke-width="0.75" />
+  <rect x="249.0" y="30.8" width="132.0" height="176.0" fill="url(#panelV)"/>
+  <ellipse cx="976.4" cy="559.5" rx="103.0" ry="9" fill="rgba(0,0,0,0.20)" filter="url(#blur)"/>
+  <polygon points="1067.4,304.0 1067.4,553.5 1083.4,540.5 1083.4,291.0" fill="var(--bg2)" />
+  <polygon points="1067.4,304.0 1067.4,553.5 1083.4,540.5 1083.4,291.0" fill="rgba(0,0,0,0.18)" />
+  <polygon points="1067.4,304.0 1067.4,553.5 1083.4,540.5 1083.4,291.0" fill="none" stroke="var(--bd3)" stroke-width="0.75" />
+  <polygon points="869.4,304.0 1067.4,304.0 1083.4,291.0 885.4,291.0" fill="var(--bg2)" />
+  <polygon points="869.4,304.0 1067.4,304.0 1083.4,291.0 885.4,291.0" fill="rgba(255,255,255,0.10)" />
+  <polygon points="869.4,304.0 1067.4,304.0 1083.4,291.0 885.4,291.0" fill="none" stroke="var(--bd3)" stroke-width="0.75" />
+  <rect x="869.4" y="304.0" width="198.0" height="249.5" fill="url(#panelV)"/>
+  <rect x="889.8" y="404.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="917.5" y="404.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="945.2" y="404.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="972.8" y="404.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="1000.5" y="404.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="1028.2" y="404.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="889.8" y="431.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="917.5" y="431.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="945.2" y="431.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="972.8" y="431.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="1000.5" y="431.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="1028.2" y="431.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="889.8" y="459.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="917.5" y="459.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="945.2" y="459.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="972.8" y="459.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="1000.5" y="459.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="1028.2" y="459.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="889.8" y="486.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="917.5" y="486.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="945.2" y="486.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="972.8" y="486.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="1000.5" y="486.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="1028.2" y="486.9" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="889.8" y="514.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="917.5" y="514.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="945.2" y="514.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="972.8" y="514.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="1000.5" y="514.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <rect x="1028.2" y="514.4" width="18.8" height="17.1" rx="1.5" fill="url(#windowG)" stroke="var(--bd3)" stroke-width="0.5"/>
+  <!-- pipe casings (3D tube shells) -->
+  <path d="M869.4 384.1 L123.2 384.1" fill="none" stroke="var(--bd2)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M869.4 384.1 L123.2 384.1" fill="none" stroke="var(--bg1)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M222.6 384.1 L222.6 39.6 L178.6 39.6" fill="none" stroke="var(--bd2)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M222.6 384.1 L222.6 39.6 L178.6 39.6" fill="none" stroke="var(--bg1)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M429.4 384.1 L429.4 39.6 L381.0 39.6" fill="none" stroke="var(--bd2)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M429.4 384.1 L429.4 39.6 L381.0 39.6" fill="none" stroke="var(--bg1)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M24.6 162.4 L11.4 162.4 L11.4 259.6" fill="none" stroke="var(--bd2)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M24.6 162.4 L11.4 162.4 L11.4 259.6" fill="none" stroke="var(--bg1)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M381.0 162.8 L416.2 162.8 L416.2 259.6 L11.4 259.6" fill="none" stroke="var(--bd2)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M381.0 162.8 L416.2 162.8 L416.2 259.6 L11.4 259.6" fill="none" stroke="var(--bg1)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M11.4 259.6 L11.4 472.1" fill="none" stroke="var(--bd2)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M11.4 259.6 L11.4 472.1" fill="none" stroke="var(--bg1)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M11.4 472.1 L156.6 472.1" fill="none" stroke="var(--bd2)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M11.4 472.1 L156.6 472.1" fill="none" stroke="var(--bg1)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M11.4 472.1 L11.4 617.3 L156.6 617.3" fill="none" stroke="var(--bd2)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M11.4 472.1 L11.4 617.3 L156.6 617.3" fill="none" stroke="var(--bg1)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M200.6 472.1 L869.4 472.1" fill="none" stroke="var(--bd2)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M200.6 472.1 L869.4 472.1" fill="none" stroke="var(--bg1)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M200.6 617.3 L350.2 617.3 L552.6 472.1 L869.4 472.1" fill="none" stroke="var(--bd2)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M200.6 617.3 L350.2 617.3 L552.6 472.1 L869.4 472.1" fill="none" stroke="var(--bg1)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M123.2 384.1 L123.2 411.4 L44.0 411.4 L11.4 440.0 L11.4 472.1" fill="none" stroke="var(--bd2)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M123.2 384.1 L123.2 411.4 L44.0 411.4 L11.4 440.0 L11.4 472.1" fill="none" stroke="var(--bg1)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- flowing fluid (colored by temp, animated by frame()) -->
+  <path id="p_return" class="flow" d="M869.4 384.1 L123.2 384.1" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"/>
+  <path id="p_ct1drop" class="flow" d="M222.6 384.1 L222.6 39.6 L178.6 39.6" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"/>
+  <path id="p_ct2drop" class="flow" d="M429.4 384.1 L429.4 39.6 L381.0 39.6" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"/>
+  <path id="p_ct1out" class="flow" d="M24.6 162.4 L11.4 162.4 L11.4 259.6" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"/>
+  <path id="p_ct2out" class="flow" d="M381.0 162.8 L416.2 162.8 L416.2 259.6 L11.4 259.6" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"/>
+  <path id="p_suction" class="flow" d="M11.4 259.6 L11.4 472.1" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"/>
+  <path id="p_suct1" class="flow" d="M11.4 472.1 L156.6 472.1" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"/>
+  <path id="p_suct2" class="flow" d="M11.4 472.1 L11.4 617.3 L156.6 617.3" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"/>
+  <path id="p_disch1" class="flow" d="M200.6 472.1 L869.4 472.1" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"/>
+  <path id="p_disch2" class="flow" d="M200.6 617.3 L350.2 617.3 L552.6 472.1 L869.4 472.1" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"/>
+  <path id="p_bypass" class="flow" d="M123.2 384.1 L123.2 411.4 L44.0 411.4 L11.4 440.0 L11.4 472.1" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 7"/>
+  <path d="M869.4 384.1 L123.2 384.1" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <path d="M222.6 384.1 L222.6 39.6 L178.6 39.6" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <path d="M429.4 384.1 L429.4 39.6 L381.0 39.6" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <path d="M24.6 162.4 L11.4 162.4 L11.4 259.6" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <path d="M381.0 162.8 L416.2 162.8 L416.2 259.6 L11.4 259.6" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <path d="M11.4 259.6 L11.4 472.1" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <path d="M11.4 472.1 L156.6 472.1" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <path d="M11.4 472.1 L11.4 617.3 L156.6 617.3" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <path d="M200.6 472.1 L869.4 472.1" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <path d="M200.6 617.3 L350.2 617.3 L552.6 472.1 L869.4 472.1" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <path d="M123.2 384.1 L123.2 411.4 L44.0 411.4 L11.4 440.0 L11.4 472.1" fill="none" stroke="rgba(255,255,255,0.26)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+  <!-- tower fronts -->
+  <rect class="equip" x="46.6" y="30.8" width="132.0" height="176.0" stroke-width="2"/>
+  <line x1="46.6" y1="52.8" x2="178.6" y2="52.8" class="equip" stroke-width="1.5"/>
+  <line x1="46.6" y1="149.6" x2="178.6" y2="149.6" class="equip" stroke-width="1.5"/>
+  <g class="faint" stroke-width="1"><line x1="66.4" y1="56.3" x2="66.4" y2="146.1"/><line x1="89.3" y1="56.3" x2="89.3" y2="146.1"/><line x1="112.2" y1="56.3" x2="112.2" y2="146.1"/><line x1="135.1" y1="56.3" x2="135.1" y2="146.1"/><line x1="158.0" y1="56.3" x2="158.0" y2="146.1"/></g>
+  <rect id="basin1" x="47.5" y="150.5" width="130.2" height="55.4" fill="#1d9e75"/>
+  <rect x="47.5" y="150.5" width="130.2" height="55.4" fill="url(#waterSheen)" pointer-events="none"/>
+  <rect class="equip" x="249.0" y="30.8" width="132.0" height="176.0" stroke-width="2"/>
+  <line x1="249.0" y1="52.8" x2="381.0" y2="52.8" class="equip" stroke-width="1.5"/>
+  <line x1="249.0" y1="149.6" x2="381.0" y2="149.6" class="equip" stroke-width="1.5"/>
+  <g class="faint" stroke-width="1"><line x1="268.8" y1="56.3" x2="268.8" y2="146.1"/><line x1="291.7" y1="56.3" x2="291.7" y2="146.1"/><line x1="314.6" y1="56.3" x2="314.6" y2="146.1"/><line x1="337.5" y1="56.3" x2="337.5" y2="146.1"/><line x1="360.4" y1="56.3" x2="360.4" y2="146.1"/></g>
+  <rect id="basin2" x="249.9" y="150.5" width="130.2" height="55.4" fill="#1d9e75"/>
+  <rect x="249.9" y="150.5" width="130.2" height="55.4" fill="url(#waterSheen)" pointer-events="none"/>
+  <text class="tag" x="112.6" y="103.4" text-anchor="middle" font-size="11">TOWER 1</text>
+  <text class="tag" x="315.0" y="103.4" text-anchor="middle" font-size="11">TOWER 2</text>
+  <!-- fans (group id + rotation centre preserved) -->
+  <g id="fan1"><ellipse cx="112.6" cy="76.5" rx="29.7" ry="4.5" fill="rgba(0,0,0,0.16)" filter="url(#blur)"/><circle cx="112.6" cy="41.8" r="31.7" fill="url(#fanShroud)" stroke="var(--bd2)" stroke-width="2"/><circle cx="112.6" cy="41.8" r="27.2" fill="none" stroke="var(--bd3)" stroke-width="1"/>
+  <g id="fan1b">
+    <path d="M119.6 41.8 Q130.1 45.8 138.4 54.4" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M114.8 48.5 Q114.2 59.7 108.6 70.2" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M106.9 45.9 Q96.0 48.8 84.3 46.8" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M106.9 37.7 Q100.8 28.2 99.1 16.5" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M114.8 35.1 Q121.9 26.4 132.5 21.2" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
+  </g>
+  <circle cx="112.6" cy="41.8" r="6.2" fill="var(--text3)" stroke="var(--bd2)" stroke-width="0.75"/></g>
+  <g id="fan2"><ellipse cx="315.0" cy="76.5" rx="29.7" ry="4.5" fill="rgba(0,0,0,0.16)" filter="url(#blur)"/><circle cx="315.0" cy="41.8" r="31.7" fill="url(#fanShroud)" stroke="var(--bd2)" stroke-width="2"/><circle cx="315.0" cy="41.8" r="27.2" fill="none" stroke="var(--bd3)" stroke-width="1"/>
+  <g id="fan2b">
+    <path d="M322.0 41.8 Q332.5 45.8 340.8 54.4" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M317.2 48.5 Q316.6 59.7 311.0 70.2" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M309.3 45.9 Q298.4 48.8 286.7 46.8" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M309.3 37.7 Q303.2 28.2 301.5 16.5" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M317.2 35.1 Q324.3 26.4 334.9 21.2" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
+  </g>
+  <circle cx="315.0" cy="41.8" r="6.2" fill="var(--text3)" stroke="var(--bd2)" stroke-width="0.75"/></g>
+  <!-- valves + bypass -->
+  <g id="cv1"><path class="equip" d="M215.6 364.1 L229.6 364.1 L215.6 382.1 L229.6 382.1 Z" stroke-width="1.5" fill="var(--bg1)"/></g>
+  <g id="cv2"><path class="equip" d="M422.4 364.1 L436.4 364.1 L422.4 382.1 L436.4 382.1 Z" stroke-width="1.5" fill="var(--bg1)"/></g>
+  <g id="byp_box"><rect class="equip" x="38.0" y="402.4" width="12" height="18" rx="1" stroke-width="1.5" fill="var(--bg1)"/></g>
+  <rect id="byp_fill" x="38.0" y="420.4" width="12" height="0" fill="#639922"/>
+  <!-- pumps (group id + rotation centre preserved) -->
+  <g id="pump1"><ellipse cx="178.6" cy="496.1" rx="24" ry="5" fill="rgba(0,0,0,0.18)" filter="url(#blur)"/><rect x="197.6" y="465.1" width="12" height="14" rx="2.5" fill="url(#pumpBody)" stroke="var(--bd2)" stroke-width="1.5"/><circle cx="178.6" cy="472.1" r="22" fill="url(#pumpBody)" stroke="var(--bd2)" stroke-width="2"/>
+  <g id="pump1b" stroke-linecap="round">
+    <path d="M183.6 472.1 Q189.1 468.7 190.9 461.8" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M181.1 476.4 Q186.8 479.5 193.6 477.6" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M176.1 476.4 Q176.3 482.9 181.4 487.9" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M173.6 472.1 Q168.1 475.5 166.3 482.4" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M176.1 467.8 Q170.4 464.7 163.6 466.6" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M181.1 467.8 Q180.9 461.3 175.8 456.3" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <circle cx="172.6" cy="465.1" r="9" fill="url(#gloss)" pointer-events="none"/>
+  <circle cx="178.6" cy="472.1" r="4.4" fill="var(--info-bd)" stroke="var(--bg1)" stroke-width="0.75"/></g>
+  <g id="pump2"><ellipse cx="178.6" cy="641.3" rx="24" ry="5" fill="rgba(0,0,0,0.18)" filter="url(#blur)"/><rect x="197.6" y="610.3" width="12" height="14" rx="2.5" fill="url(#pumpBody)" stroke="var(--bd2)" stroke-width="1.5"/><circle cx="178.6" cy="617.3" r="22" fill="url(#pumpBody)" stroke="var(--bd2)" stroke-width="2"/>
+  <g id="pump2b" stroke-linecap="round">
+    <path d="M183.6 617.3 Q189.1 613.9 190.9 607.0" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M181.1 621.6 Q186.8 624.7 193.6 622.8" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M176.1 621.6 Q176.3 628.1 181.4 633.1" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M173.6 617.3 Q168.1 620.7 166.3 627.6" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M176.1 613.0 Q170.4 609.9 163.6 611.8" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M181.1 613.0 Q180.9 606.5 175.8 601.5" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <circle cx="172.6" cy="610.3" r="9" fill="url(#gloss)" pointer-events="none"/>
+  <circle cx="178.6" cy="617.3" r="4.4" fill="var(--info-bd)" stroke="var(--bg1)" stroke-width="0.75"/></g>
+  <text id="pump1lbl" class="lbl" x="178.6" y="420.2" text-anchor="middle" font-size="10">PUMP 1</text>
+  <text id="pump2lbl" class="lbl" x="178.6" y="653.4" text-anchor="middle" font-size="10">PUMP 2</text>
+  <g id="mpv"></g><g id="xconn"></g>
+  <!-- DP sensor -->
+  <line x1="728.6" y1="384.1" x2="728.6" y2="472.1" stroke="var(--bd2)" stroke-width="1.2" stroke-dasharray="4 4"/>
+  <circle id="dp_dot" cx="728.6" cy="472.1" r="6.2" fill="none" stroke="var(--info-bd)" stroke-width="1.5"/>
+  <!-- building labels -->
+  <text class="tag" x="968.4" y="365.2" text-anchor="middle">BUILDING</text>
+  <text class="lbl" x="968.4" y="389.4" text-anchor="middle" font-size="9.5">15 DX AHU · WSHP · CRAC</text>
+  <!-- live value pills -->
+  <g><rect x="56.0" y="0.8" width="34" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_f1on" class="val" x="73.0" y="12.8" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="131.5" y="0.8" width="38" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_f1" class="val" x="150.5" y="12.8" text-anchor="middle" font-size="10.5">—%</text></g>
+  <g><rect x="258.4" y="0.8" width="34" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_f2on" class="val" x="275.4" y="12.8" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="333.9" y="0.8" width="38" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_f2" class="val" x="352.9" y="12.8" text-anchor="middle" font-size="10.5">—%</text></g>
+  <g><rect x="1.2" y="137.2" width="46" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_basin1" class="val" x="24.2" y="149.2" text-anchor="middle" font-size="10.5">— °F</text></g>
+  <g><rect x="381.4" y="137.2" width="46" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_basin2" class="val" x="404.4" y="149.2" text-anchor="middle" font-size="10.5">— °F</text></g>
+  <g><rect x="90.4" y="170.2" width="40" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_lvl1" class="val" x="110.4" y="182.2" text-anchor="middle" font-size="10.5">—%</text></g>
+  <g><rect x="295.0" y="170.2" width="40" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_lvl2" class="val" x="315.0" y="182.2" text-anchor="middle" font-size="10.5">—%</text></g>
+  <g><rect x="210.6" y="337.4" width="54" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_fm1" class="val" x="237.6" y="349.4" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="248.8" y="365.1" width="48" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_cv1" class="val" x="272.8" y="377.1" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="428.4" y="337.4" width="54" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_fm2" class="val" x="455.4" y="349.4" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="455.6" y="365.1" width="48" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_cv2" class="val" x="479.6" y="377.1" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="24.0" y="388.9" width="40" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_byp" class="val" x="44.0" y="400.9" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="69.8" y="388.9" width="54" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_fmb" class="val" x="96.8" y="400.9" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="647.8" y="359.4" width="50" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_cwr" class="val" x="672.8" y="371.4" text-anchor="middle" font-size="10.5">— °F</text></g>
+  <g><rect x="567.2" y="476.9" width="66" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_fms" class="val" x="600.2" y="488.9" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="674.2" y="476.9" width="50" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_tsup" class="val" x="699.2" y="488.9" text-anchor="middle" font-size="10.5">— °F</text></g>
+  <g><rect x="698.6" y="421.0" width="60" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_dp14" class="val" x="728.6" y="433.0" text-anchor="middle" font-size="10.5">— psi</text></g>
+  <g><rect x="70.9" y="446.5" width="50" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_p1tsup" class="val" x="95.9" y="458.5" text-anchor="middle" font-size="10.5">— °F</text></g>
+  <g><rect x="159.6" y="431.1" width="38" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_p1on" class="val" x="178.6" y="443.1" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="147.4" y="520.9" width="58" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_p1dp" class="val" x="176.4" y="532.9" text-anchor="middle" font-size="10.5">— psi</text></g>
+  <g><rect x="156.4" y="541.1" width="40" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_p1vfd" class="val" x="176.4" y="553.1" text-anchor="middle" font-size="10.5">—%</text></g>
+  <g><rect x="70.9" y="591.7" width="50" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_p2tsup" class="val" x="95.9" y="603.7" text-anchor="middle" font-size="10.5">— °F</text></g>
+  <g><rect x="159.6" y="577.2" width="38" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_p2on" class="val" x="178.6" y="589.2" text-anchor="middle" font-size="10.5">—</text></g>
+  <g><rect x="147.4" y="666.1" width="58" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_p2dp" class="val" x="176.4" y="678.1" text-anchor="middle" font-size="10.5">— psi</text></g>
+  <g><rect x="156.4" y="686.3" width="40" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_p2vfd" class="val" x="176.4" y="698.3" text-anchor="middle" font-size="10.5">—%</text></g>
+  <g><rect x="938.4" y="427.6" width="60" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_dp" class="val" x="968.4" y="439.6" text-anchor="middle" font-size="10.5">— psi</text></g>
+</svg>
+</div>
+
+<div class="legend">
+  <span>cool</span>
+  <span style="height:10px;width:140px;border-radius:5px;display:inline-block;background:linear-gradient(90deg,#1565d6 0%,#2a63c9 45%,#6b4f81 69%,#aa3f40 82%,#c0392b 100%)"></span>
+  <span>warm</span>
+  <span style="margin-left:8px">pipe color = water temp &#183; dash speed = that pipe&#8217;s flow &#183; fan/pump spin = actual speed</span>
+</div>
+
+<svg width="100%" viewBox="0 0 680 70" role="img" style="margin-bottom:2px">
+  <title>Supply temperature trend</title><desc>CWS over time vs setpoint and the 60 degree low limit.</desc>
+  <line id="spark_sp" x1="10" y1="24" x2="670" y2="24" stroke="#1d9e75" stroke-width="0.5" stroke-dasharray="4 4"/>
+  <line id="spark_low" x1="10" y1="46" x2="670" y2="46" stroke="#c0392b" stroke-width="0.5" stroke-dasharray="4 4"/>
+  <polyline id="spark_line" points="" fill="none" stroke="#378add" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>
+<div style="font-size:12px;color:var(--text2);margin-bottom:12px">CWS trend (blue) vs setpoint (green) and the 60 &deg;F WSHP low limit (red)</div>
+
+<details open><summary>Manual control &amp; mode <span class="hint">HAND overrides the sequence — incl. safety</span></summary>
+<div class="body">
+  <div class="modebtns">
+    <span title="How many tower cells are online: Dual = both, Single = one (the other isolated), Shutdown = pump+fans off.">Towers</span>
+    <button id="btn_dual" onclick="setMode('dual')" title="Both cells online (normal operation).">Dual</button>
+    <button id="btn_single" onclick="setMode('single')" title="One cell online, the other isolated (current single-cell state).">Single</button>
+    <button id="btn_shut" onclick="setMode('shutdown')" title="Pump and fans off.">Shutdown</button>
+    <span style="margin-left:10px" title="In Single mode, which cell is in service.">Single feeds</span>
+    <button id="btn_st1" onclick="setSingleTower('CT-1')" title="Run CT-1.">CT-1</button>
+    <button id="btn_st2" onclick="setSingleTower('CT-2')" title="Run CT-2.">CT-2</button>
+    <span style="margin-left:10px" title="Which pump runs (one at a time). The model treats both identically; the cross-connect butterfly isolates the standby.">Lead pump</span>
+    <button id="btn_ctp1" onclick="setPump('CTP-1')" title="CTP-1 runs, CTP-2 standby.">CTP-1</button>
+    <button id="btn_ctp2" onclick="setPump('CTP-2')" title="CTP-2 runs, CTP-1 standby.">CTP-2</button>
+    <span style="margin-left:10px" title="In Dual lead/lag, which cell's fan leads (ramps first). Manual fan buttons still map to the physical cell.">Lead tower</span>
+    <button id="btn_lt1" onclick="setLeadTower('CT-1')" title="CT-1 fan leads.">CT-1</button>
+    <button id="btn_lt2" onclick="setLeadTower('CT-2')" title="CT-2 fan leads.">CT-2</button>
+  </div>
+  <div id="sec_manual"></div>
+  <div class="note">To replicate field point #1 (Pump 1 + Tower 2): set <b>Single</b> feeding <b>CT-2</b>, lead pump CTP-1, Pump &rarr; <b>HAND 62%</b>, CT-2 fan &rarr; <b>HAND 58 Hz</b>, load &asymp; 425 tons, wet-bulb &asymp; 60 &deg;F &rarr; expect &asymp;1,275 gpm, 8.8 psi, CWS&asymp;71&deg;F.</div>
+</div></details>
+
+<details><summary>Manual valves &amp; isolation <span class="hint">basin level, air-ingestion, dead-head, overflow</span></summary>
+<div class="body"><div id="sec_valves"></div>
+  <div class="note">Tower <b>return</b> = BAS control valve; tower <b>supply</b> = manual butterfly. Basins are separated; quick-fill is normally OFF (makeup is on the supply side after the pumps). Try dual mode &rarr; shut <b>CT-2 return</b> to 0% but leave <b>CT-2 supply</b> open: CT-2 basin drains &rarr; <b>AIR INGEST</b> + cavitation. Correct isolation = shut <b>both</b> CT-2 return and supply.</div>
+</div></details>
+
+<details><summary>Setpoints &amp; sequencing</summary>
+<div class="body">
+  <div class="modebtns" id="sec_enables"></div>
+  <div class="grid" id="sec_sp"></div>
+</div></details>
+
+<details><summary>Tower model <span class="hint">&epsilon; calibration knobs</span></summary>
+<div class="body"><div class="grid" id="sec_tower"></div></div></details>
+
+<details><summary>Hydraulics <span class="hint">resistances &amp; DP curve (field-calibrated)</span></summary>
+<div class="body"><div class="grid" id="sec_hyd"></div></div></details>
+
+<details><summary>PID gains <span class="hint">DP-PID retuned + directional anti-windup</span></summary>
+<div class="body"><div class="grid" id="sec_pid"></div></div></details>
+
+<details open><summary>Ambient &amp; load</summary>
+<div class="body"><div class="grid" id="sec_amb"></div></div></details>
+
+<details><summary>Building load model <span class="hint">economizer-gated, from the building HVAC inventory</span></summary>
+<div class="body"><div class="grid" id="sec_bld"></div>
+  <div class="note">Active when <b>Load source = building</b>. Loop load = CRAC floor + AHU cooling (collapses to the residual when economizing below the OAT &amp; enthalpy limits) + heat pumps (+ cooling / &minus; heating). Hover any control for what it does. Magnitudes are from the building HVAC summary (15 AHUs ~604 t, ~31 WSHPs, CRAC/IT ~46 t) with assumed diversity &mdash; tune as real BACnet load data comes in.</div>
+</div></details>
+
+</div>
+
+<script>
+// ================= state =================
+var DT=0.1;
+var V={sup:1150,ret:1100,bldg:1050,basin:750};   // BASIN now NAMEPLATE-GROUNDED: water = (op wt 25,220 - dry 11,600)/8.34 = 13,620 lb = 1,633 gal both cells at OVERFLOW = ~817/cell; ~750/cell at running sump. The ~400/cell the basin lost vs the old 1100 guess is re-attributed to V.sup (10" suction+discharge piping, where it physically is) so the measured transients are preserved. Lags: CWS->CWR (bldg+ret)=(1050+1100)/1063=2.0 min (field 2 min); cold leg (sup+basin)=(1150+750)/1063=1.79 min (field ~1.8 min fan-off). Total ~4050 gal -- pinned by BOTH transients, NOT the 10k geometric pipe-trace (which the 2-min hot-leg transport falsifies).
+var H0=163.4, AC=(163.4-135.5)/(1850*1850);
+var FAN_KW=25*0.746/(0.92*0.97);   // 25 HP tower fan -> ELECTRICAL kW at full speed (shaft HP / motor 0.92 / VFD 0.97 ~= 20.9 kW). Belt loss folded into motor eff; refine when fan-motor nameplate + a VFD kW-vs-Hz sweep land.
+
+var CFG={
+  sp:75, lowLim:50, bypHold:65, bypClose:70, band:2, timer:10, dpSP:8.5,   // lowLim 60->50: WSHPs trip ~50F entering water (field obs) — the real loop floor, not 60. Below it = fans off + bypass 100% emergency. Raise a couple deg for protection margin if desired.
+  pumpMin:0.50, gpmFloor:700, freeze:38, oatLock:25,  // freeze 45->38: the SOO's 45F sits ABOVE normal cold operation (the old towers ran basins in the LOW 40s with flow and never froze), so a 45F trip would force the emergency close-bypass during routine winter running. The emergency (close bypass, ALL flow to tower) belongs only when the tower "actually gets really cold" — below the normal low-40s floor. 38F = approaching real ice risk. RECONCILE vs the documented SOO (45F).
+  enLag:true, enBypass:true, enFreeze:true, enLowLimit:true, balancedFans:false,  // balancedFans: dual-mode fans run together at equal speed (parallel) instead of split-range lead/lag
+  epsMax:0.588, fanExp:0.6, wlExp:1.05, wlRef:846, fanFloor:0.05, apprMin:3.5, airCap:51, fanFixed:0.12, minLeave:42,  // minLeave = coldest the FLOWING tower water can reach (degF): liquid water can't be driven below freezing, and an open tower is run >=43F (manufacturer min process-fluid temp, ice avoidance); field obs put the old towers' floor in the low 40s at this flow. Stops cold-weather from integrating to absurd sub-freezing temps. e-NTU. apprMin 6.0->3.5 fit to the 24-hr data (low-load min approach; was ~1F warm overnight). airCap = air-side (Merkel) heat-rejection limit, tons per (Btu/lb) at full fan; at low fan the choked fill is airflow-limited so leaving water pins near a floor & approach widens as WB drops (fit to the 6/17 5-hr 45Hz run). fanFixed = per-running-fan fixed-loss fraction of nameplate (VFD/motor idle + low-speed inefficiency); makes fan kW = FAN_KW*(fanFixed+(1-fanFixed)*speed^3), so running TWO fans has TWO fixed costs (why lead/lag can beat balanced at low load). wlExp=1.05 fit to TWO airport-WB points 6/17 (62%/58Hz->eps0.42 @1275gpm, 55%/45Hz->eps0.45 @1072gpm; ~10F approach to TRUE WB). Supersedes old 1.5, which used the BAS WB sensor ~5F low -> apparent eps0.37/~15F approach. Still a single overloaded + choked-fill cell; fan 58->45Hz barely moved eps (airflow not the limit). Re-fit at dual-cell / corrected fill. apprMin=min approach to WB (fixes low-load over-cooling). fanFloor=natural-draft airflow, fan off.
+  kser:2.11e-5, kcell:2.0e-6, static:15, kdp:8.8/(1275*1275), cvByp:900,   // static 12->15 ft = the OPEN-TOWER LIFT (basin water level up to the tower return distribution ~15', per the elevation sketch). NOT zero: the building loop (down to flrs 1-13 & back up) is a recovered closed siphon, but the open tower at the top breaks it -- the pump lifts to the tower discharge w/ no recovery. Pump min set to 50% per operating policy (the hard floor for this plant). The pump physically cannot circulate below ~30.3% (where shutoff head 163.4*0.303^2 = 15 ft == the open-tower lift, so solveHyd returns q=0 -- a knife-edge); 50% sits well above that with ~910 gpm single-cell. A manual HAND drag below ~30.3% still deadheads, but the PUMP DEADHEAD alarm flags it. ACTUAL live values with this kser+static (verify, don't trust a stale comment): 62%->~1237 vs field 1275 (-3%), 55%->~1050 vs field 1058 (-0.8%). The static 12->15 change was NOT followed by a kser re-fit, so the 62% anchor drifted; a single kser can't hit both points (the higher-load 62% case has lower building resistance -> load-dependent). Current kser favors the 55% point (today's config). A ~1.95e-5 kser would re-center on 62% at the cost of 55%.
+  fanKp:0.25, fanKi:0.04, bypKp:0.30, bypKi:0.05, dpKp:0.02, dpKi:0.02,  // dp retuned for dt=0.1
+  load:450, wb:60, oat:73, mode:'dual', pump:'CTP-1', singleTower:'CT-1', leadTower:'CT-1',
+  // ---- weather-driven building-load model (from the building HVAC summary): loop load =
+  // CRAC/IT floor + economizer-gated AHU cooling + bidirectional heat-pump (cool warm / heat cold) ----
+  loadSource:'manual',                       // 'manual' = use the load slider; 'building' = compute from OAT/WB + schedule
+  base24:75,                                 // 24/7 floor (tons): CRAC/IT (IT-A 2x20 + IT-B 4 + IT-C 2) + always-on heat pumps + after-hours. Trimmed 100->75 to match field overnight rejection (range x flow over 531 trend pts = ~70-80 t, not the old ~106 t read).
+  occBase:210, ahuPeak:450, ahuMin:30,       // occupied AHU floor (internal-gain dominated, ~flat vs OAT) / hot-day max / economizing residual. 270->210: 6/18/26 occupied plateau measured 286 refrig-tons (q*dT/24 over 7.5 occupied hrs, OAT 58F econ-locked-out) = base24 75 + 211. Floor governs cool occupied days only (warm days ride ahuPeak*cd), so hot-day calib is untouched. Reconcile vs a 2nd cool-occupied trend.
+  hpHeat:55,                                 // WSHP heating draw FROM the loop at design heating (diversified peak, < the ~72t connected). 75->55: the old 75 EXACTLY cancelled base24 (75) -> 0 net in deep winter, which erased the firm ~46t year-round CRAC/IT rejection (IT-A 2x20 + IT-B 4 + IT-C 2) that runs 24/7/365. Now deep-winter net floors ~+20t (CRAC-dominated). The loop CAN still go net-negative if the HP draw exceeds the base. ASSUMPTION pending a real winter trend — tune base24/hpHeat once a cold-spell export exists.
+  balOAT:55, designOAT:88, htgOAT:10,        // cooling balance pt / design cooling OAT / design heating OAT
+  econOAT:60, econEnth:19,                    // AHU air-side economizer: free-cool when OAT < 60F AND enthalpy < 19 Btu/lb
+  todMin:840, weekday:true                    // sim clock: minutes since midnight (840=14:00); weekday = M-F (AHUs scheduled 05:00-18:00, staggered)
+};
+var OV={pump:false, fan1:false, fan2:false, byp:false};
+var MAN={pump:0.62, fan1:58/60, fan2:0, byp:0};
+// ---- valves: ret=tower return BAS CV, sup=tower supply MANUAL butterfly (per cell, 0-1);
+// bypIso=bypass isolation (both sides of the bypass CV); xconn=cross-connect butterfly on the suction
+// pipe BETWEEN the two pumps -- shut isolates CTP-2's suction (CTP-1 has direct header suction + no
+// diffuser; CTP-2 has the suction diffuser). pDis=pump [CTP-1,CTP-2] discharge MPV (0/1). fill=basin
+// quick-fill makeup (normally OFF/winterized). Real makeup is on the SUPPLY side AFTER the pumps, so a
+// basin whose RETURN is shut gets NO refill and drains to air. Basins separated.
+var VLV={ ret:[1,1], sup:[1,1], bypIso:1, xconn:1, pDis:[1,1], fill:[0,0] };
+var BASIN_GAL=817, FILL_GPM=40;   // nameplate-derived: (op 25,220 - dry 11,600 lb)/8.34 = 1,633 gal / 2 cells = 817 gal/cell at basin OVERFLOW (the level-integration ceiling). Running sump sits below this.
+var running=true, speed=2;
+
+function fillArr(){var a=[];for(var i=0;i<400;i++)a.push(80);return a;}
+var cwsHist=fillArr(), bldgHist=fillArr(), spark=[];
+
+// PID with DIRECTIONAL anti-windup (only freeze integration when pushing further into the active limit)
+function PID(kp,ki,omin,omax,rev){return {kp:kp,ki:ki,omin:omin,omax:omax,rev:rev,i:0,
+  step:function(sp,m,dt){
+    var e=this.rev?(m-sp):(sp-m);
+    var iCand=this.i+e*dt;
+    var raw=this.kp*e+this.ki*iCand;
+    var c=Math.max(this.omin,Math.min(this.omax,raw));
+    if(!((c>=this.omax&&e>0)||(c<=this.omin&&e<0))) this.i=iCand;   // commit unless saturated in error direction
+    return Math.max(this.omin,Math.min(this.omax,this.kp*e+this.ki*this.i));
+  },
+  reset:function(){this.i=0;}};}
+var C={fan:PID(0.25,0.04,0,2,true),byp:PID(0.30,0.05,0,1,false),dp:PID(0.02,0.02,0.30,1,false),
+       pumpSpeed:0,lead:0,lag:0,bypass:0,fanCell:[0,0],lagEnabled:false,tLeadSat:0,tBelow:0,ramp:0.5,oatLocked:false};
+var S={Tcws:80,Tcwr:80,basin:[80,80],level:[1,1],hyd:null,q:0,tons:0,npsha:0,bhp:0,fankW:0,bld:null};
+
+// ================= physics =================
+function valveK(cv){cv=Math.max(cv,1e-6);return 2.31/(cv*cv);}
+function solveHyd(N,bp,cells){
+  if(N<=0||CFG.mode==='shutdown')return {q:0,qt:0,qb:0,head:0,dp:0,bhp:0};
+  var kt=cells>0?CFG.kcell/(cells*cells):1e9;
+  var cvb=CFG.cvByp*Math.max(bp,1e-4);
+  var kb=bp>1e-3?valveK(cvb):1e12;
+  var inv=1/Math.sqrt(kt)+1/Math.sqrt(kb);
+  var kpar=1/(inv*inv);
+  var ksys=CFG.kser+kpar;
+  var num=N*N*H0-CFG.static;
+  if(num<=0)return {q:0,qt:0,qb:0,head:0,dp:0,bhp:0};
+  var q=Math.sqrt(num/(AC+ksys));
+  var head=H0*N*N-AC*q*q;
+  var gt=1/Math.sqrt(kt), gb=1/Math.sqrt(kb);
+  var ft=gt/(gt+gb);
+  var qt=q*ft, qb=q-qt;
+  var x=q/1770.8, eta=0.85*(2*x-x*x); if(eta<0.35)eta=0.35;   // part-load pump eff: 0.85 at BEP 1770.8 gpm, falls off left of BEP (loop runs 1060-1275 gpm -> eta ~0.71-0.78). Replaces flat 0.85 (bhp was ~9-19% low in band). Refine w/ digitized manufacturer eta curve.
+  var bhp=head>0?q*head/(3960*eta):0;
+  return {q:q,qt:qt,qb:qb,head:head,dp:CFG.kdp*q*q,bhp:bhp};
+}
+function towerLeave(tin,qc,s){
+  if(qc<=1)return {tout:tin,tons:0};
+  s=Math.max(0,Math.min(1,s));
+  // open evaporative tower (e-NTU form). Airflow = fan-driven (proportional to speed) with a
+  // small natural-draft floor when the fan is off; cold/dry winter air rejects more via the larger
+  // (Tin - WB) potential. The MIN-APPROACH floor (CFG.apprMin) encodes the real minimum approach a
+  // finite-NTU tower holds: without it, constant-eps lets the leaving water collapse to the wet-bulb
+  // at low load and over-cool the loop BELOW outdoor dry-bulb (field-disproven, 6/16-17 trend).
+  // wl cap is min(1.0,..) so the water term only DERATES an overloaded cell, never enhances below
+  // design flow -- keeps dual-cell (per-cell flow < 846) at the 0.588 nameplate.
+  var G=Math.max(s,CFG.fanFloor);                            // airflow as a fraction of design
+  var ntu0=-Math.log(1-Math.min(0.95,CFG.epsMax));           // anchored: full fan + nominal flow -> design eps
+  var ntu=ntu0*Math.pow(G,CFG.fanExp)*Math.min(1.0,Math.pow(CFG.wlRef/Math.max(qc,1),CFG.wlExp));
+  var eps=Math.max(0,Math.min(1-Math.exp(-ntu),0.98));       // Cr->0 evaporative limit
+  var tout=Math.min(tin, Math.max(tin-eps*(tin-CFG.wb), CFG.wb+CFG.apprMin));
+  // AIR-SIDE (Merkel) heat-rejection cap: the choked fill is airflow-limited at low fan, so the leaving
+  // water can't drop below the floor where the load equals what the air can actually carry. Leaving temp
+  // = WARMER of the water-side (e-NTU) result and this air-side floor -> pins CWS and widens the approach
+  // as WB drops (matches 6/17 5-hr 45Hz: CWS ~73-74 while WB swung 60-64). Bisection for the floor.
+  var hWB=enthSat(CFG.wb), lo=CFG.wb+0.3, hi=tin;
+  for(var it=0;it<14;it++){ var ta=(lo+hi)*0.5; if(qc*(tin-ta)/24 - CFG.airCap*G*(enthSat(ta)-hWB) > 0) lo=ta; else hi=ta; }
+  var taStar=(lo+hi)*0.5; if(taStar>tout)tout=taStar;
+  if(tout<CFG.minLeave)tout=CFG.minLeave;   // COLD-WEATHER FLOOR: the tower can't drive flowing water below ~freezing/ice-avoidance min
+  return {tout:tout,tons:qc*8.34*(tin-tout)/200};
+}
+function npsha(q){return 33.9-0-8.0e-7*q*q-1.0;}   // both pumps flooded at basin level: no lift
+function nodeUpdate(T,Tin,vol,q){if(q<=1)return T;var tau=vol/q;var r=DT/tau;return (T+r*Tin)/(1+r);}
+function delayed(h,vol,q){if(q<=1)return h[h.length-1];var st=Math.max(1,Math.min(h.length-1,Math.round((vol/q)/DT)));return h[h.length-st];}
+function pushHist(h,x){h.push(x);if(h.length>400)h.shift();}
+
+// ---- which physical tower cell(s) are online, and each cell's fan speed ----
+function activeCount(){ return CFG.mode==='dual'?2:(CFG.mode==='shutdown'?0:1); }
+function cellActive(i){ if(CFG.mode==='dual')return true; if(CFG.mode==='shutdown')return false; return i===((CFG.singleTower==='CT-2')?1:0); }
+function cellFan(i){ return C.fanCell?C.fanCell[i]:0; }
+
+// ---- weather-driven building load (tons on the condenser-water loop) ----
+function enthSat(wbF){                                    // moist-air enthalpy ~= saturation enthalpy at wet-bulb (Btu/lb dry air)
+  var Tc=(wbF-32)/1.8;
+  var psat=6.1094*Math.exp(17.625*Tc/(243.04+Tc))*0.0145038;   // psia
+  var W=0.621945*psat/(14.696-psat);
+  return 0.240*wbF + W*(1061+0.444*wbF);
+}
+function occupancy(){                                          // 0..1 occupied fraction from the sim clock
+  if(!CFG.weekday) return 0;                                   // AHUs off on weekends
+  var t=CFG.todMin, s=300, full=375, e=1080;                  // 05:00 start, 06:15 fully on (15 AHUs ~5 min apart), 18:00 off
+  if(t<s||t>=e) return 0;
+  if(t<full) return (t-s)/(full-s);                           // staggered morning ramp
+  return 1;
+}
+function buildingLoad(oat,wb){
+  var econ=(oat<CFG.econOAT && enthSat(wb)<CFG.econEnth);       // AHU air-side economizer engaged
+  var cd=Math.max(0,Math.min(1,(oat-CFG.balOAT)/(CFG.designOAT-CFG.balOAT)));   // cooling-demand fraction (hot-day weather term)
+  var hd=Math.max(0,Math.min(1,(CFG.balOAT-oat)/(CFG.balOAT-CFG.htgOAT)));      // heating-demand fraction
+  var occ=occupancy();
+  // occupied AHU compressor load: a floor from internal gains (stays high even on cool mornings) that the
+  // weather term only exceeds on hot days; economizing (cool+dry) drops it to the interior residual.
+  var ahuRaw=econ?CFG.ahuMin:Math.max(CFG.occBase,CFG.ahuPeak*cd);
+  var ahu=ahuRaw*occ;                                          // gated by the M-F 05:00-18:00 schedule
+  var hp=-CFG.hpHeat*hd;                                       // WSHPs pull heat FROM the loop when cold
+  return {tons:CFG.base24+ahu+hp, econ:econ, occ:occ, ahu:ahu, hp:hp};
+}
+
+var ALARMS={};
+function step(){
+  ALARMS={};
+  CFG.todMin+=DT; if(CFG.todMin>=1440)CFG.todMin-=1440;       // advance sim clock (drives the occupancy schedule)
+  if(CFG.loadSource==='building'){ S.bld=buildingLoad(CFG.oat,CFG.wb); CFG.load=Math.round(S.bld.tons); }
+  if(CFG.mode==='shutdown'){
+    C.pumpSpeed=C.lead=C.lag=C.bypass=0; C.dp.reset();C.fan.reset();C.byp.reset();
+    S.hyd=solveHyd(0,0,0); S.q=0; S.tons=0; S.npsha=npsha(0); S.bhp=0;
+    pushHist(cwsHist,S.Tcws); pushHist(bldgHist,S.Tcwr); return;
+  }
+  var cells=CFG.mode==='dual'?2:1;
+  var basinMin=99; for(var bm=0;bm<2;bm++){if(cellActive(bm))basinMin=Math.min(basinMin,S.basin[bm]);} if(basinMin===99)basinMin=S.Tcwr;
+  C.fan.kp=CFG.fanKp; C.fan.ki=CFG.fanKi;
+  C.byp.kp=CFG.bypKp; C.byp.ki=CFG.bypKi;
+  C.dp.kp=CFG.dpKp;   C.dp.ki=CFG.dpKi;
+
+  // ---- PUMP ----
+  if(OV.pump){ C.pumpSpeed=MAN.pump; C.dp.reset(); }
+  else{
+    var dpMeas=S.hyd?S.hyd.dp:0;
+    var tgt=C.dp.step(CFG.dpSP,dpMeas,DT);
+    if(S.hyd&&S.hyd.q>0&&S.hyd.q<CFG.gpmFloor)tgt=Math.min(1,Math.max(tgt,C.pumpSpeed+0.05));
+    tgt=Math.max(CFG.pumpMin,Math.min(1,tgt));
+    var dmax=C.ramp*DT;
+    C.pumpSpeed+=Math.max(-dmax,Math.min(dmax,tgt-C.pumpSpeed));
+  }
+  var flowOk=!S.hyd||S.hyd.q>50;
+  var perm=C.pumpSpeed>0&&flowOk;
+  var freeze=CFG.enFreeze&&basinMin<CFG.freeze;
+  var low=CFG.enLowLimit&&S.Tcws<CFG.lowLim;     // 60F WSHP low-limit: own enable, separate from freeze
+  C.oatLocked=false;
+
+  // ---- FANS + BYPASS (AUTO) ----
+  if(freeze){
+    // FREEZE PROTECTION (priority): CLOSE the bypass and force ALL flow UP through the tower so the warm
+    // return continuously flushes the fill + basin and they can't freeze. "Rather a cold loop than a frozen
+    // tower." Matches the manufacturer rule (full flow over the fill, NEVER a throttled/partial bypass in a
+    // freeze) and the actual field sequence. Supersedes the old (backwards) bypass-100%-on-freeze.
+    C.lead=0; C.lag=0; C.bypass=0;
+    C.fan.reset(); ALARMS.freeze=true;
+  } else if(low){
+    // WSHP low-limit: fans off, open the warming bypass to recirculate/temper. NOTE this adds no heat — it
+    // only blends warm return into the supply, so it holds the loop up only while there is net building/pump heat.
+    C.lead=0; C.lag=0; C.bypass=1;
+    C.fan.reset(); ALARMS.low_cws=true;
+  } else {
+    var demand=perm?C.fan.step(CFG.sp,S.Tcws,DT):0;
+    if(!perm)C.fan.reset();
+    if(cells>=2 && CFG.balancedFans){
+      // BALANCED / PARALLEL staging: run BOTH cells' fans together at one modulated speed
+      // (all cells wet, low air velocity). Fan power ~speed^3, so two cells at a low equal
+      // speed beat one cell pegged at 100% + the lag trickling on -- and it avoids the lead
+      // cell having to overcool to offset an under-fanned lag cell. demand>1 just pegs both.
+      var sb=Math.min(1,demand); if(sb>0)sb=Math.max(0.10,sb);
+      C.lead=sb; C.lag=sb; C.lagEnabled=true;
+    } else {
+      var lead=Math.min(1,demand); if(lead>0)lead=Math.max(0.10,lead);
+      // single-mode OAT fan lockout
+      if(cells<2 && CFG.oat<CFG.oatLock){ lead=0; C.oatLocked=true; ALARMS.oat_lockout=true; }
+      var lag=0;
+      if(cells>=2&&CFG.enLag){
+        C.tLeadSat=lead>=0.99?C.tLeadSat+DT:0;
+        C.tBelow=S.Tcws<(CFG.sp-CFG.band)?C.tBelow+DT:0;
+        if(!C.lagEnabled&&S.Tcws>(CFG.sp+CFG.band)&&C.tLeadSat>=CFG.timer)C.lagEnabled=true;
+        if(C.lagEnabled&&C.tBelow>=CFG.timer)C.lagEnabled=false;
+        // lag fan is a LATCHED stage: once enabled it holds >= min fan (10%) and
+        // modulates up; it only drops to 0 when staged off via the 10-min timer.
+        // (Avoids the per-step 0<->10% chatter when demand hovers at the 1.0 handoff.)
+        lag=C.lagEnabled?Math.max(0.10,Math.min(1,demand-1)):0;
+      } else { C.lagEnabled=false; }
+      C.lead=lead; C.lag=lag;
+    }
+    if(CFG.enBypass){
+      if(S.Tcws<CFG.bypHold) C.bypass=C.byp.step(CFG.bypHold,S.Tcws,DT);
+      else if(S.Tcws>CFG.bypClose){ C.bypass=Math.max(0,C.bypass-0.5*DT); C.byp.reset(); }
+    } else { C.bypass=0; C.byp.reset(); }
+  }
+
+  // ---- MANUAL OVERRIDES win (incl. over safety) ----
+  if(OV.byp)  C.bypass=MAN.byp;
+  // map controller output onto each PHYSICAL tower cell (drives thermal + animation). In dual
+  // lead/lag, CFG.leadTower picks which cell the lead output drives; manual fan1/fan2 buttons
+  // always map to the physical CT-1/CT-2 cell regardless of which cell is currently lead.
+  C.fanCell=[0,0];
+  if(CFG.mode==='single'){
+    var aiS=(CFG.singleTower==='CT-2')?1:0;            // selected single tower's fan = the active fan
+    if(aiS===0 && OV.fan1) C.lead=MAN.fan1;
+    if(aiS===1 && OV.fan2) C.lead=MAN.fan2;
+    C.lag=0; C.fanCell[aiS]=C.lead;
+  } else if(CFG.mode==='dual'){
+    var li=(CFG.leadTower==='CT-2')?1:0;               // lead cell index
+    C.fanCell[li]=C.lead; C.fanCell[1-li]=C.lag;
+    if(OV.fan1) C.fanCell[0]=MAN.fan1;
+    if(OV.fan2) C.fanCell[1]=MAN.fan2;
+  }
+
+  // ---- VALVE-AWARE HYDRAULICS + BASIN LEVEL + THERMAL ----
+  var ap=(CFG.pump==='CTP-2')?1:0;                          // active pump index
+  var pumpBlocked=(VLV.pDis[ap]<0.5)||(ap===1&&VLV.xconn<0.5);   // discharge MPV shut, OR CTP-2 running with the cross-connect butterfly shut (CTP-1 keeps direct header suction)
+  var bypEff=(VLV.bypIso>0.5)?C.bypass:0;                   // bypass needs its isolation valves open
+  var supW=[0,0], retW=[0,0];                               // per-cell supply/return conductance (gated)
+  for(var iv=0;iv<2;iv++){
+    supW[iv]=(cellActive(iv)&&VLV.sup[iv]>0.02&&S.level[iv]>0.03)?VLV.sup[iv]:0;  // can draw only if butterfly open AND basin has water
+    retW[iv]=(cellActive(iv)&&VLV.ret[iv]>0.02)?VLV.ret[iv]:0;
+  }
+  var nSup=(supW[0]>0?1:0)+(supW[1]>0?1:0);
+  var hyd=solveHyd(pumpBlocked?0:C.pumpSpeed, bypEff, nSup); S.hyd=hyd; var q=hyd.q;
+  var tonsRej=0, airAny=false, ovfAny=false, lowAny=false;
+  if(q>1&&!pumpBlocked){
+    var tin=delayed(cwsHist,V.bldg,q);
+    var pumpHeat=hyd.bhp*0.746/3.517;   // pump brake power dissipates into the loop as heat (HP->kW->tons) — a real positive floor, never negative, matters most in deep cold at ~0 building load
+    var dTraw=(CFG.load+pumpHeat)*200/(q*8.34); var dT=Math.max(-40,Math.min(40,dTraw)); if(Math.abs(dTraw)>40)ALARMS.dtclamp=true;
+    var bout=tin+dT; pushHist(bldgHist,bout);
+    S.Tcwr=delayed(bldgHist,V.ret,q);
+    var qb=hyd.qb, basinDraw=Math.max(0,q-qb);              // bypass taps return->suction, not the basin
+    var rsum=retW[0]+retW[1], ssum=supW[0]+supW[1], mix=0, mw=0;
+    for(var i=0;i<2;i++){
+      var inflow = rsum>0 ? hyd.qt*retW[i]/rsum : 0;         // warm return into this cell's fill+basin
+      var outflow= ssum>0 ? basinDraw*supW[i]/ssum : 0;      // pump draw out of this basin
+      var net=inflow+FILL_GPM*VLV.fill[i]-outflow;           // separated basin: integrate level
+      S.level[i]=Math.max(0,Math.min(1.25,S.level[i]+net*DT/BASIN_GAL));
+      if(cellActive(i)&&VLV.sup[i]>0.02&&S.level[i]<=0.03&&q>1)airAny=true;   // butterfly open on empty basin -> air
+      if(S.level[i]>=1.25&&net>0)ovfAny=true;                                  // overfilling -> overflow
+      if(cellActive(i)&&S.level[i]<0.25)lowAny=true;
+      if(cellActive(i)&&inflow>1){ var r=towerLeave(S.Tcwr,inflow,cellFan(i)); tonsRej+=r.tons; S.basin[i]=nodeUpdate(S.basin[i],r.tout,V.basin,inflow); }
+      if(outflow>1){ mix+=S.basin[i]*outflow; mw+=outflow; }  // supply blend weighted by what's actually drawn
+    }
+    var basinMix=mw>0?mix/mw:S.Tcwr;
+    var tsuc=q>0?(basinDraw*basinMix+qb*S.Tcwr)/q:basinMix;
+    S.Tcws=nodeUpdate(S.Tcws,tsuc,V.sup,q);
+    pushHist(cwsHist,S.Tcws);
+  } else { pushHist(cwsHist,S.Tcws); pushHist(bldgHist,S.Tcwr); if(C.pumpSpeed>0.02&&CFG.mode!=='shutdown')ALARMS.deadhead=true; }
+  if(airAny)ALARMS.air=true; if(ovfAny)ALARMS.overflow=true; if(lowAny)ALARMS.basin_low=true;
+  S.q=q; S.tons=tonsRej; S.npsha=airAny?0:npsha(q); S.bhp=hyd.bhp;
+  // fan electrical kW: per running fan = fixed loss + cube term (so two fans pay two fixed costs)
+  S.fankW=0; for(var fk=0;fk<2;fk++){ var fs=cellFan(fk); if(cellActive(fk)&&fs>0.001) S.fankW+=FAN_KW*(CFG.fanFixed+(1-CFG.fanFixed)*fs*fs*fs); }
+}
+
+// ================= render =================
+function lerp(a,b,t){return a+(b-a)*t;}
+function tcolor(T){
+  var lo=55, hi=90, c0=[21,101,214], c1=[192,57,43];   // vivid blue (cool) -> red (warm)
+  var t=Math.max(0,Math.min(1,(T-lo)/(hi-lo)));
+  var tc=(79-lo)/(hi-lo);   // 50/50 crossover at 79F: puts the 75F supply on the blue side, 83F return on the red side
+  // ease toward each endpoint about the crossover, so blue dominates the cool range and red the warm range
+  var ts = t<tc ? 0.5*Math.pow(t/tc,3) : 1-0.5*Math.pow((1-t)/(1-tc),3);
+  return 'rgb('+Math.round(lerp(c0[0],c1[0],ts))+','+Math.round(lerp(c0[1],c1[1],ts))+','+Math.round(lerp(c0[2],c1[2],ts))+')';
+}
+function yOf(T){return 24-(Math.max(50,Math.min(95,T))-75)/45*46;}
+function gp(n){return Math.round(n).toLocaleString('en-US');}
+function S_(id){return document.getElementById(id);}
+function setStroke(id,c){S_(id).setAttribute('stroke',c);}
+function setTxt(id,v){S_(id).textContent=v;}
+function setOp(id,on){S_(id).setAttribute('opacity',on?'1':'0.28');}
+function flag(id,on){S_(id).classList.toggle('show',!!on);}
+
+function render(){
+  var shut=CFG.mode==='shutdown', a0=cellActive(0), a1=cellActive(1), nAct=activeCount();
+  var cwr=tcolor(S.Tcwr), cws=tcolor(S.Tcws), b1=tcolor(S.basin[0]), b2=tcolor(S.basin[1]);
+  ['p_return','p_ct1drop','p_ct2drop','p_bypass'].forEach(function(p){setStroke(p,cwr);});
+  setStroke('p_ct1out',b1); setStroke('p_ct2out',b2); ['p_suction','p_suct1','p_suct2','p_disch1','p_disch2'].forEach(function(p){setStroke(p,cws);});
+  S_('basin1').setAttribute('fill',a0?b1:'#9a988f'); S_('basin2').setAttribute('fill', a1?b2:'#9a988f');
+  setOp('fan1', a0); setOp('p_ct1drop', a0); setOp('p_ct1out', a0);
+  setOp('fan2', a1); setOp('p_ct2drop', a1); setOp('p_ct2out', a1);
+  S_('basin1').setAttribute('opacity', a0?'1':'0.4'); S_('cv1').setAttribute('opacity', a0?'1':'0.35');
+  S_('basin2').setAttribute('opacity', a1?'1':'0.4'); S_('cv2').setAttribute('opacity', a1?'1':'0.35');
+  S_('p_bypass').setAttribute('opacity', C.bypass>0.02?'1':'0.16');
+  // active vs standby pump bodies (follow CFG.pump)
+  var p1Active=(CFG.pump==='CTP-1');
+  S_('pump1b').setAttribute('opacity', (p1Active&&!shut)?'1':'0.18'); S_('pump2b').setAttribute('opacity', (!p1Active&&!shut)?'1':'0.18');
+  setOp('p_suct1', p1Active&&!shut); setOp('p_disch1', p1Active&&!shut); setOp('p_suct2', !p1Active&&!shut); setOp('p_disch2', !p1Active&&!shut);
+  S_('pump1lbl').textContent='CTP-1'+(p1Active?' (lead)':' (standby)');
+  S_('pump2lbl').textContent='CTP-2'+(p1Active?' (standby)':' (lead)');
+  var h=18*Math.max(0,Math.min(1,C.bypass)); S_('byp_fill').setAttribute('height',h.toFixed(1)); S_('byp_fill').setAttribute('y',(420.4-h).toFixed(1));
+  // overlays
+  var dpv=(S.hyd?S.hyd.dp:0), hd=(S.hyd?S.hyd.head:0), qb=(S.hyd?S.hyd.qb:0);
+  setTxt('t_cwr', shut?'idle':S.Tcwr.toFixed(1)+' °F');
+  setTxt('t_basin1', a0?(Math.round(S.basin[0])+' °F'):'—'); setTxt('t_basin2', a1?(Math.round(S.basin[1])+' °F'):'—');
+  setTxt('t_lvl1', a0?Math.round(S.level[0]*100)+'%':'—'); setTxt('t_lvl2', a1?Math.round(S.level[1]*100)+'%':'—');
+  setTxt('t_f1on', (a0&&cellFan(0)>0.001)?'ON':'OFF'); setTxt('t_f2on', (a1&&cellFan(1)>0.001)?'ON':'OFF');
+  setTxt('t_f1', a0?(Math.round(cellFan(0)*100)+'%'):'off'); setTxt('t_f2', a1?(Math.round(cellFan(1)*100)+'%'):'off');
+  setTxt('t_cv1', a0?'open':'closed'); setTxt('t_cv2', a1?'open':'closed');
+  setTxt('t_byp', Math.round(C.bypass*100)+'%'); setTxt('t_fmb', shut?'—':gp(qb)+' gpm');
+  setTxt('t_fms', shut?'—':gp(S.q)+' gpm'); setTxt('t_tsup', shut?'—':S.Tcws.toFixed(1)+' °F');
+  setTxt('t_dp14', shut?'—':(hd*0.433).toFixed(1)+' psi');
+  setTxt('t_dp', dpv.toFixed(1)+' psi');
+  var p1=(CFG.pump==='CTP-1'), pr=(!shut&&S.q>1);
+  setTxt('t_p1on', (p1&&pr)?'ON':'OFF'); setTxt('t_p2on', (!p1&&pr)?'ON':'OFF');
+  setTxt('t_p1vfd', p1?Math.round(C.pumpSpeed*100)+'%':'0%'); setTxt('t_p2vfd', !p1?Math.round(C.pumpSpeed*100)+'%':'0%');
+  setTxt('t_p1dp', (p1&&pr)?(hd*0.433).toFixed(1)+' psi':'—'); setTxt('t_p2dp', (!p1&&pr)?(hd*0.433).toFixed(1)+' psi':'—');
+  setTxt('t_p1tsup', shut?'—':S.Tcws.toFixed(1)+' °F'); setTxt('t_p2tsup', shut?'—':S.Tcws.toFixed(1)+' °F');
+  setTxt('t_kw', 'fans '+S.fankW.toFixed(1)+' + pump '+(S.bhp*0.746/(0.92*0.97)).toFixed(1)+' kW');
+  // ---- live readout faceplate (v4) ----
+  var ttl_kw = S.fankW + S.bhp*0.746/(0.92*0.97);
+  setTxt('k_cws', shut?'\u2014':S.Tcws.toFixed(1)+' \u00b0F');
+  setTxt('k_cwr', shut?'\u2014':S.Tcwr.toFixed(1)+' \u00b0F');
+  setTxt('k_appr', shut?'\u2014':(S.Tcws-CFG.wb).toFixed(1)+' \u00b0F');
+  setTxt('k_flow', shut?'\u2014':gp(S.q)+' gpm');
+  setTxt('k_rej', shut?'\u2014':gp(S.tons)+' tons');
+  setTxt('k_rej_s', shut?'\u2014':'load '+gp(CFG.load)+' t');
+  setTxt('k_kw', shut?'\u2014':ttl_kw.toFixed(1)+' kW');
+  if(CFG.loadSource==='building'&&SLIDER_REFRESH.load)SLIDER_REFRESH.load();   // show weather-computed load on the slider
+  var clk=document.getElementById('clock_lbl'); if(clk){ clk.textContent=fmtClock(); var ci=document.getElementById('clock_in'); if(ci&&document.activeElement!==ci)ci.value=Math.round(CFG.todMin); }
+  var qtw=S.hyd?S.hyd.qt:0;                                  // tower-return flow meters (WFS, per cell)
+  setTxt('t_fm1', shut?'—':(a0?gp(qtw/nAct):'0'));
+  setTxt('t_fm2', shut?'—':(a1?gp(qtw/nAct):'0'));
+  S_('dp_dot').setAttribute('stroke', Math.abs((S.hyd?S.hyd.dp:0)-CFG.dpSP)<0.4?'#639922':'#ba7517');
+  // flags
+  var cav=(S.npsha<22.9&&S.q>1), lf=(S.q<536.7&&S.q>1), lo=(CFG.enLowLimit&&S.Tcws<CFG.lowLim&&S.q>1);
+  var frz=(CFG.enFreeze&&Math.min(a0?S.basin[0]:99, a1?S.basin[1]:99)<CFG.freeze), hp=(S.bhp>75);
+  flag('flag_cav',cav); flag('flag_flow',lf); flag('flag_low',lo); flag('flag_frz',frz);
+  flag('flag_oat',C.oatLocked); flag('flag_hp',hp);
+  flag('flag_air',!!ALARMS.air); flag('flag_ovf',!!ALARMS.overflow); flag('flag_dead',!!ALARMS.deadhead); flag('flag_basin',!!ALARMS.basin_low); flag('flag_dtclamp',!!ALARMS.dtclamp);
+  // sparkline
+  spark.push(S.Tcws); if(spark.length>165)spark.shift();
+  var pts=''; for(var i=0;i<spark.length;i++){var x=10+(660*i/164); pts+=x.toFixed(1)+','+yOf(spark[i]).toFixed(1)+' ';}
+  S_('spark_line').setAttribute('points',pts);
+  S_('spark_sp').setAttribute('y1',yOf(CFG.sp));S_('spark_sp').setAttribute('y2',yOf(CFG.sp));
+  S_('spark_low').setAttribute('y1',yOf(CFG.lowLim));S_('spark_low').setAttribute('y2',yOf(CFG.lowLim));
+}
+
+// per-pipe flow animation
+var offMain=0, offSuc=0, offT1=0, offT2=0, offByp=0, aF1=0, aF2=0, aP1=0, aP2=0, last=performance.now();
+var MAINp=['p_return','p_suction'];
+function frame(now){
+  var dt=Math.min(0.05,(now-last)/1000); last=now;
+  var pa=(CFG.pump==='CTP-1');
+  aF1+=cellFan(0)*900*dt; aF2+=cellFan(1)*900*dt;
+  S_('fan1b').setAttribute('transform','rotate('+(aF1%360).toFixed(1)+' 112.6 41.8)');
+  S_('fan2b').setAttribute('transform','rotate('+(aF2%360).toFixed(1)+' 315 41.8)');
+  var pinc=C.pumpSpeed*820*dt;                                   // spin only the ACTIVE pump
+  if(pa){ aP1+=pinc; S_('pump1b').setAttribute('transform','rotate('+(aP1%360).toFixed(1)+' 178.6 472.1)'); }
+  else  { aP2+=pinc; S_('pump2b').setAttribute('transform','rotate('+(aP2%360).toFixed(1)+' 178.6 617.3)'); }
+  var qt=S.hyd?S.hyd.qt:0, qb=S.hyd?S.hyd.qb:0, nA=activeCount();
+  var q1=cellActive(0)?qt/Math.max(1,nA):0, q2=cellActive(1)?qt/Math.max(1,nA):0;   // per-cell flow (off cell -> 0 -> frozen)
+  offMain-=S.q*0.00055*dt*60; offT1-=q1*0.00055*dt*60; offT2-=q2*0.00055*dt*60; offByp-=qb*0.00055*dt*60;
+  MAINp.forEach(function(p){S_(p).setAttribute('stroke-dashoffset',offMain.toFixed(1));});
+  (pa?['p_suct1','p_disch1']:['p_suct2','p_disch2']).forEach(function(p){S_(p).setAttribute('stroke-dashoffset',offMain.toFixed(1));});
+  ['p_ct1drop','p_ct1out'].forEach(function(p){S_(p).setAttribute('stroke-dashoffset',offT1.toFixed(1));});
+  ['p_ct2drop','p_ct2out'].forEach(function(p){S_(p).setAttribute('stroke-dashoffset',offT2.toFixed(1));});
+  S_('p_bypass').setAttribute('stroke-dashoffset',offByp.toFixed(1));
+  requestAnimationFrame(frame);
+}
+
+// ================= UI builders =================
+var SLIDER_REFRESH={}, SLIDER_INPUT={};   // lets external code (live weather) drive + lock CFG sliders
+function stepDec(s){var p=(''+s).split('.');return p[1]?p[1].length:0;}
+function mkSlider(spec,obj){
+  var f=spec.factor||1;
+  var w=document.createElement('div'); w.className='ctl';
+  var top=document.createElement('div'); top.className='ctop';
+  var lab=document.createElement('span'); lab.textContent=spec.label;
+  var val=document.createElement('span'); val.className='cval';
+  var inp=document.createElement('input'); inp.type='range'; inp.min=spec.min; inp.max=spec.max; inp.step=spec.step;
+  inp.value=obj[spec.key]/f;
+  function show(){val.textContent=(+inp.value).toFixed(spec.dec!==undefined?spec.dec:stepDec(spec.step))+(spec.unit?(' '+spec.unit):'');}
+  inp.oninput=function(){obj[spec.key]=(+inp.value)*f; show();};
+  if(obj===CFG){ SLIDER_INPUT[spec.key]=inp; SLIDER_REFRESH[spec.key]=function(){inp.value=obj[spec.key]/f; show();}; }
+  show(); top.appendChild(lab); top.appendChild(val); w.appendChild(top); w.appendChild(inp);
+  if(spec.desc){ w.title=spec.desc; lab.style.cursor='help'; }   // hover description
+  return w;
+}
+function buildSliders(container,specs,obj){var el=document.getElementById(container);specs.forEach(function(s){el.appendChild(mkSlider(s,obj));});}
+
+var SP_SPECS=[
+  {key:'sp',label:'CWS setpoint',min:60,max:85,step:0.5,unit:'°F',desc:'Target cold-water supply temp the fan/bypass sequence holds (you usually run ~75°F).'},
+  {key:'lowLim',label:'CWS low limit',min:50,max:70,step:0.5,unit:'°F',desc:'Hard floor protecting the WSHPs — fans cut and bypass opens 100% if CWS falls below this (60°F per the sequence).'},
+  {key:'bypHold',label:'Bypass hold temp',min:55,max:72,step:0.5,unit:'°F',desc:'Warming bypass starts modulating open below this CWS to hold the loop up in cold weather.'},
+  {key:'bypClose',label:'Bypass close temp',min:60,max:78,step:0.5,unit:'°F',desc:'Warming bypass fully closes above this CWS.'},
+  {key:'band',label:'Stage band ±',min:0.5,max:5,step:0.5,unit:'°F',desc:'Dead-band around setpoint for lead/lag fan staging (±2°F per sequence).'},
+  {key:'timer',label:'Stage timer',min:0,max:20,step:1,unit:'min',desc:'Minimum time the lead fan must be saturated before the lag stages on / off (10 min, anti-short-cycle).'},
+  {key:'dpSP',label:'DP setpoint',min:4,max:14,step:0.1,unit:'psi',desc:'3rd-floor remote differential-pressure target the pump VFD holds (~8.5 psi).'},
+  {key:'pumpMin',label:'Pump min speed',min:0,max:60,step:1,unit:'%',factor:0.01,desc:'Minimum pump VFD speed. Floored at 50% per operating policy (well above the ~30.3% deadhead edge, where the pump shutoff head drops under the 15 ft open-tower lift and flow stops).'},
+  {key:'gpmFloor',label:'GPM floor',min:0,max:1500,step:25,unit:'gpm',desc:'Minimum loop flow — pump speed is bumped up if flow would drop below this.'},
+  {key:'freeze',label:'Freeze temp',min:35,max:50,step:1,unit:'°F',desc:'Basin freeze trip (45°F per the SOO; physical min ~41°F): fans off + bypass 100%.'},
+  {key:'oatLock',label:'OAT single lockout',min:0,max:50,step:1,unit:'°F',desc:'Below this OAT, single-tower fan operation is locked out (freeze protection of the idle cell).'}
+];
+var TOWER_SPECS=[
+  {key:'epsMax',label:'Tower eps_max',min:0.30,max:0.80,step:0.005,dec:3,desc:'Design effectiveness at full fan + nominal flow (nameplate 95→85 @78WB = 0.588). Anchors the e-NTU curve.'},
+  {key:'minLeave',label:'Min leaving water',min:33,max:55,step:0.5,unit:'°F',desc:'Cold-weather floor — coldest the FLOWING tower water can reach. Open water can’t go below freezing and the tower is run ≥43°F (manufacturer min) to avoid icing; the old towers floored in the low 40s at this flow. Stops winter runs from integrating to absurd sub-freezing temps.'},
+  {key:'fanExp',label:'NTU airflow exponent',min:0.4,max:1.1,step:0.05,dec:2,desc:'How tower capacity scales with fan speed: NTU ∝ speed^this (~0.6). Lower = less fan-sensitive.'},
+  {key:'wlExp',label:'Water-load / overload derate',min:0,max:2.6,step:0.05,dec:2,desc:'Effectiveness derate when a cell runs above its nominal flow (overloaded). 1.05 fit to the single overloaded cell.'},
+  {key:'wlRef',label:'Water-load ref',min:400,max:1200,step:10,unit:'gpm',desc:'Per-cell nominal flow (846 gpm) where the overload derate starts.'},
+  {key:'fanFloor',label:'Natural-draft airflow (fan off)',min:0,max:0.4,step:0.005,dec:3,desc:'Airflow fraction with the fan OFF (stack/natural draft) — sets fan-off winter cooling. 0.05.'},
+  {key:'apprMin',label:'Min approach to WB',min:0,max:12,step:0.5,unit:'°F',desc:'Closest the leaving water gets to wet-bulb at low load (3.5°F, fit to the 24-hr data). Prevents over-cooling toward WB.'},
+  {key:'airCap',label:'Air-side reject cap',min:20,max:120,step:1,unit:'t/(Btu/lb)',desc:'Air-side (Merkel) heat-rejection limit at full fan. At low fan the choked fill is airflow-limited, so leaving water pins near a floor and the approach widens as wet-bulb drops. Fit to the 6/17 45Hz run; lower = more airflow-limited.'},
+  {key:'fanFixed',label:'Fan fixed-loss fraction',min:0,max:0.4,step:0.02,dec:2,desc:'Per-running-fan fixed electrical loss (VFD/motor idle + low-speed inefficiency) as a fraction of nameplate. Why running two fans costs more at low load (lead/lag vs balanced).'}
+];
+var HYD_SPECS=[
+  {key:'kser',label:'k_series',min:0.5,max:6.0,step:0.05,unit:'×1e-5',factor:1e-5,dec:2,desc:'Building-loop flow resistance (dominant term). Fit to field point #1 — sets flow vs pump speed.'},
+  {key:'kcell',label:'k_tower/cell',min:0.5,max:10,step:0.1,unit:'×1e-6',factor:1e-6,dec:1,desc:'Per-cell tower-branch flow resistance.'},
+  {key:'static',label:'Static head',min:0,max:40,step:1,unit:'ft',desc:'Net static lift the pump sees (small — pumps are flooded at basin level).'},
+  {key:'kdp',label:'k_dp',min:1,max:12,step:0.05,unit:'×1e-6',factor:1e-6,dec:2,desc:'3rd-floor remote DP vs flow: DP(psi)=k·Q². Calibrated 8.8 psi @ ~1275 gpm.'},
+  {key:'cvByp',label:'Bypass Cv (full)',min:200,max:1500,step:25,desc:'Flow coefficient of the 6" warming bypass at 100% open (sets how much it short-circuits).'}
+];
+var PID_SPECS=[
+  {key:'fanKp',label:'Fan Kp',min:0,max:1,step:0.01,dec:2,desc:'Proportional gain of the fan-staging PID (CWS → fan speed).'},
+  {key:'fanKi',label:'Fan Ki',min:0,max:0.3,step:0.005,dec:3,desc:'Integral gain of the fan PID.'},
+  {key:'bypKp',label:'Bypass Kp',min:0,max:1,step:0.01,dec:2,desc:'Proportional gain of the warming-bypass PID (CWS → bypass valve).'},
+  {key:'bypKi',label:'Bypass Ki',min:0,max:0.3,step:0.005,dec:3,desc:'Integral gain of the bypass PID.'},
+  {key:'dpKp',label:'DP Kp',min:0,max:0.1,step:0.002,dec:3,desc:'Proportional gain of the pump DP PID (3rd-floor DP → pump speed). Retuned to kill the limit cycle.'},
+  {key:'dpKi',label:'DP Ki',min:0,max:0.06,step:0.002,dec:3,desc:'Integral gain of the pump DP PID (directional anti-windup).'}
+];
+var AMB_SPECS=[
+  {key:'load',label:'Loop load',min:-200,max:900,step:10,unit:'tons',desc:'Net heat on the condenser-water loop (+ cooling, - heating). Driven by the slider in manual mode, or computed from weather in building mode.'},
+  {key:'wb',label:'Wet-bulb',min:35,max:82,step:1,unit:'°F',desc:'Outdoor wet-bulb — the temperature the open tower can approach. Set by the live METAR feed when enabled.'},
+  {key:'oat',label:'OAT',min:0,max:100,step:1,unit:'°F',desc:'Outdoor air dry-bulb. Drives the economizer changeover and the building load in building mode.'}
+];
+var BLD_SPECS=[
+  {key:'base24',label:'24/7 base load',min:0,max:220,step:5,unit:'tons',desc:'Always-on load: CRAC/IT (IT-A 2x20 + IT-B 4 + IT-C 2) + 24/7 heat pumps + after-hours. The overnight floor (~75 t, from range x flow over 531 trend pts).'},
+  {key:'occBase',label:'Occupied AHU floor',min:0,max:450,step:10,unit:'tons',desc:'AHU compressor load during occupied hours from internal gains + ventilation — stays ~flat vs OAT (high even on cool mornings). The weekday-morning step.'},
+  {key:'ahuPeak',label:'AHU hot-day max',min:0,max:700,step:10,unit:'tons',desc:'Hot-day AHU cooling; the weather term only exceeds the occupied floor on warm days toward design (~88F).'},
+  {key:'ahuMin',label:'AHU residual (econ)',min:0,max:120,step:5,unit:'tons',desc:'Interior-zone cooling the AHUs still reject while economizing (compressors off).'},
+  {key:'hpHeat',label:'Heat-pump peak heating',min:0,max:150,step:5,unit:'tons',desc:'Diversified WSHP heat pulled FROM the loop in cold weather (drives the load negative).'},
+  {key:'balOAT',label:'Cooling balance OAT',min:45,max:65,step:1,unit:'°F',desc:'OAT below which the building flips toward net heating (heating demand grows).'},
+  {key:'designOAT',label:'Design cooling OAT',min:80,max:95,step:1,unit:'°F',desc:'OAT at which the hot-day AHU cooling term reaches 100%.'},
+  {key:'econOAT',label:'Economizer OAT limit',min:50,max:70,step:1,unit:'°F',desc:'AHUs free-cool (compressors off) below this OAT, provided enthalpy is also below its limit.'},
+  {key:'econEnth',label:'Economizer enthalpy limit',min:15,max:28,step:0.5,unit:'Btu/lb',desc:'AHUs free-cool below this OA enthalpy (~19 Btu/lb here), provided OAT is also below its limit.'}
+];
+var ACT_SPECS=[
+  {ov:'pump',man:'pump',label:'Pump',sub:'speed',min:0,max:100,step:1,unit:'%',factor:0.01},
+  {ov:'fan1',man:'fan1',label:'CT-1 fan',sub:'lead',min:0,max:60,step:1,unit:'Hz',factor:1/60},
+  {ov:'fan2',man:'fan2',label:'CT-2 fan',sub:'lag',min:0,max:60,step:1,unit:'Hz',factor:1/60},
+  {ov:'byp',man:'byp',label:'Bypass',sub:'6″ valve',min:0,max:100,step:1,unit:'%',factor:0.01}
+];
+function buildActuators(){
+  var el=document.getElementById('sec_manual');
+  ACT_SPECS.forEach(function(s){
+    var row=document.createElement('div'); row.className='actrow';
+    var nm=document.createElement('div'); nm.className='nm'; nm.innerHTML=s.label+'<small>'+s.sub+'</small>';
+    var seg=document.createElement('div'); seg.className='seg';
+    var bA=document.createElement('button'), bH=document.createElement('button');
+    bA.textContent='AUTO'; bH.textContent='HAND';
+    bA.title='Let the documented sequence drive this actuator.'; bH.title='Override: drive this actuator from the manual slider — wins over the sequence (including safety).';
+    var f=s.factor||1;
+    var sl=document.createElement('div'); sl.className='actslider';
+    var top=document.createElement('div'); top.className='ctop';
+    var sp=document.createElement('span'); sp.textContent='manual';
+    var val=document.createElement('span'); val.className='cval';
+    var inp=document.createElement('input'); inp.type='range'; inp.min=s.min; inp.max=s.max; inp.step=s.step; inp.value=MAN[s.man]/f;
+    function show(){val.textContent=(+inp.value).toFixed(stepDec(s.step))+' '+s.unit;}
+    function sync(){var hand=OV[s.ov]; bH.classList.toggle('on',hand); bA.classList.toggle('on',!hand); inp.disabled=!hand;}
+    inp.oninput=function(){MAN[s.man]=(+inp.value)*f; show();};
+    bA.onclick=function(){OV[s.ov]=false; sync();};
+    bH.onclick=function(){OV[s.ov]=true; sync();};
+    show(); sync();
+    top.appendChild(sp); top.appendChild(val); sl.appendChild(top); sl.appendChild(inp);
+    seg.appendChild(bA); seg.appendChild(bH);
+    row.appendChild(nm); row.appendChild(seg); row.appendChild(sl);
+    el.appendChild(row);
+  });
+}
+var EN_SPECS=[{key:'enLag',label:'Lag fan stage',desc:'Allow the second (lag) fan to stage on after the lead saturates. Off = single-fan only.'},
+  {key:'enBypass',label:'Warming bypass',desc:'Enable the 6" warming bypass to hold CWS up in cold weather (modulates between bypass-hold and bypass-close temps).'},
+  {key:'enFreeze',label:'Freeze (45°F basin)',desc:'Basin freeze protection: fans off + bypass 100% when a basin falls below the freeze temp.'},
+  {key:'enLowLimit',label:'WSHP low-limit (60°F)',desc:'WSHP protection: fans cut + bypass opens if CWS falls below the low limit.'},
+  {key:'balancedFans',label:'Balanced fans (vs lead/lag)',desc:'Dual mode: run BOTH cell fans together at equal speed (parallel) instead of split-range lead/lag. Far less fan power at moderate-high load.'}];
+function buildEnables(){
+  var el=document.getElementById('sec_enables');
+  var lab=document.createElement('span'); lab.textContent='Sequence stages:'; el.appendChild(lab);
+  EN_SPECS.forEach(function(s){
+    var b=document.createElement('button'); b.className='tog'; b.textContent=s.label; if(s.desc)b.title=s.desc;
+    function sync(){b.classList.toggle('on',CFG[s.key]);}
+    b.onclick=function(){CFG[s.key]=!CFG[s.key]; sync();};
+    sync(); el.appendChild(b);
+  });
+}
+function setActive(ids,a){ids.forEach(function(id){var e=document.getElementById(id);var on=(id===a);e.classList.toggle('btn',true);e.style.background=on?'var(--info-bg)':'';e.style.color=on?'var(--info-tx)':'';e.style.borderColor=on?'var(--info-bd)':'';});}
+function setMode(m){CFG.mode=m; setActive(['btn_dual','btn_single','btn_shut'], m==='dual'?'btn_dual':(m==='single'?'btn_single':'btn_shut'));}
+function setPump(p){CFG.pump=p; setActive(['btn_ctp1','btn_ctp2'],p==='CTP-1'?'btn_ctp1':'btn_ctp2');}
+function setLeadTower(t){CFG.leadTower=t; setActive(['btn_lt1','btn_lt2'],t==='CT-1'?'btn_lt1':'btn_lt2');}
+function setLoadSource(s){ CFG.loadSource=s; if(SLIDER_INPUT.load)SLIDER_INPUT.load.disabled=(s==='building'); setActive(['btn_lman','btn_lbld'], s==='manual'?'btn_lman':'btn_lbld'); }
+function fmtClock(){
+  var t=Math.round(CFG.todMin), h=Math.floor(t/60), m=((t%60)+60)%60;
+  return (CFG.weekday?'Weekday':'Weekend')+' '+(h<10?'0':'')+h+':'+(m<10?'0':'')+m+' · occupancy '+Math.round(occupancy()*100)+'%';
+}
+function buildClock(){
+  var el=document.getElementById('sec_bld'); if(!el)return;
+  var wrap=document.createElement('div'); wrap.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 10px';
+  var rd=document.createElement('div'); rd.id='clock_lbl'; rd.textContent=fmtClock(); rd.style.cssText='font-size:12.5px;min-width:232px;font-variant-numeric:tabular-nums';
+  var ti=document.createElement('input'); ti.type='range'; ti.id='clock_in'; ti.min=0; ti.max=1435; ti.step=5; ti.value=Math.round(CFG.todMin); ti.style.flex='1';
+  ti.title='Time of day for the occupancy schedule. Advances as the sim runs — set it (e.g. 04:50) and run to watch the staggered weekday AHU startup (05:00-06:15).';
+  ti.oninput=function(){CFG.todMin=+ti.value; document.getElementById('clock_lbl').textContent=fmtClock();};
+  var wd=document.createElement('button'); wd.id='btn_wkday'; wd.className='tog'; wd.title='Weekday (M-F): AHUs scheduled 05:00-18:00. Off = weekend (AHUs off; CRAC/HP base only).';
+  function ws(){wd.classList.toggle('on',CFG.weekday); wd.textContent=CFG.weekday?'Weekday':'Weekend';}
+  wd.onclick=function(){CFG.weekday=!CFG.weekday; ws(); document.getElementById('clock_lbl').textContent=fmtClock();};
+  ws(); wrap.appendChild(rd); wrap.appendChild(ti); wrap.appendChild(wd); el.insertBefore(wrap, el.firstChild);
+}
+function buildLoadCtl(){
+  var el=document.getElementById('sec_amb'); if(!el)return;
+  var wrap=document.createElement('div'); wrap.style.cssText='display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 8px';
+  var lab=document.createElement('span'); lab.textContent='Load source:'; lab.style.cssText='font-size:12.5px';
+  var bm=document.createElement('button'); bm.id='btn_lman'; bm.className='tog'; bm.textContent='manual'; bm.title='Drive the loop load from the slider below.'; bm.onclick=function(){setLoadSource('manual');};
+  var bb=document.createElement('button'); bb.id='btn_lbld'; bb.className='tog'; bb.textContent='building (weather)'; bb.title='Compute the loop load from OAT/WB using the building HVAC inventory: CRAC floor + economizer-gated AHU cooling + bidirectional heat pumps. Pairs with Live weather.'; bb.onclick=function(){setLoadSource('building');};
+  wrap.appendChild(lab); wrap.appendChild(bm); wrap.appendChild(bb);
+  el.insertBefore(wrap, el.firstChild);
+}
+function setSingleTower(t){CFG.singleTower=t; setActive(['btn_st1','btn_st2'],t==='CT-1'?'btn_st1':'btn_st2');}
+function toggleRun(){running=!running; document.getElementById('btn_run').textContent=running?'Pause':'Run';}
+function doReset(){S.Tcws=80;S.Tcwr=80;S.basin=[80,80];S.level=[1,1];S.hyd=null;S.q=0;S.tons=0;S.bhp=0;C.pumpSpeed=0;C.lead=0;C.lag=0;C.bypass=0;C.lagEnabled=false;C.tLeadSat=0;C.tBelow=0;C.fan.reset();C.byp.reset();C.dp.reset();cwsHist=fillArr();bldgHist=fillArr();spark=[];render();}
+
+// ================= live weather (local METAR station) =================
+// Drives the sim's OAT + wet-bulb from the real local METAR observation. The actual BAS still
+// sequences off the BAS penthouse sensor; this is the sim's ambient boundary condition only.
+// Primary source = NWS station observation (the airport METAR sensor); fallback = Open-Meteo.
+// ---- SITE: live-weather location, chosen at runtime — NO location ships in this file. ----
+// Pick one under "Ambient & load" -> Set location. Accepts a METAR/ICAO id (e.g. KJFK, US/NWS)
+// or a "lat,lon" pair (global, via Open-Meteo). Empty by default: the sim runs on manual OAT/WB
+// until a location is chosen.
+var SITE={station:'', lat:null, lon:null};
+var WX={on:false, timer:null, status:'Manual OAT/WB \u2014 choose a location to enable live weather'};
+function z2(n){return (n<10?'0':'')+n;}
+function wbStull(Tf,rh){                                   // Stull (2011): °F + %RH -> wet-bulb °F
+  rh=Math.max(1,Math.min(100,rh)); var T=(Tf-32)/1.8;
+  var wc=T*Math.atan(0.151977*Math.sqrt(rh+8.313659))
+        +Math.atan(T+rh)-Math.atan(rh-1.676331)
+        +0.00391838*Math.pow(rh,1.5)*Math.atan(0.023101*rh)-4.686035;
+  return wc*1.8+32;
+}
+function rhFromDp(Tf,Tdf){                                 // Magnus: °F dry-bulb + °F dewpoint -> %RH
+  var g=function(t){t=(t-32)/1.8; return 17.625*t/(243.04+t);};
+  return Math.max(1,Math.min(100,100*Math.exp(g(Tdf)-g(Tf))));
+}
+function paintWxStatus(){var s=document.getElementById('wx_status'); if(s)s.textContent=WX.status;}
+function applyWx(oatF,rh,dpF,src,stamp){
+  CFG.oat=oatF; CFG.wb=wbStull(oatF,rh);
+  if(SLIDER_REFRESH.oat)SLIDER_REFRESH.oat();
+  if(SLIDER_REFRESH.wb)SLIDER_REFRESH.wb();
+  var td=(dpF!=null)?(' · Td '+dpF.toFixed(0)+'°F'):'';
+  WX.status='● '+src+(stamp?(' '+stamp):'')+' — OAT '+oatF.toFixed(0)+'°F'+td+' · RH '+rh.toFixed(0)+'% · WB '+CFG.wb.toFixed(1)+'°F';
+  paintWxStatus();
+}
+function siteReady(){return !!SITE.station || SITE.lat!=null;}
+function setSite(raw){
+  var code=(raw||'').trim();
+  var b=document.getElementById('btn_wx');
+  function fail(msg){SITE.station='';SITE.lat=null;SITE.lon=null; if(b){b.disabled=true;b.classList.remove('on');} WX.status='\u2715 '+msg; paintWxStatus();}
+  if(!code){ fail('enter a station id (e.g. KJFK) or "lat,lon"'); return; }
+  var m=code.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+  if(m){                                                    // lat,lon -> Open-Meteo (global, no station)
+    var la=parseFloat(m[1]), lo=parseFloat(m[2]);
+    if(la<-90||la>90||lo<-180||lo>180){ fail('lat must be within \u00b190, lon \u00b1180'); return; }
+    SITE.station=''; SITE.lat=la; SITE.lon=lo;
+    if(b)b.disabled=false;
+    WX.status='location set: '+la.toFixed(3)+', '+lo.toFixed(3)+' (Open-Meteo) \u00b7 press Live weather'; paintWxStatus();
+    return;
+  }
+  code=code.toUpperCase();
+  if(!/^[A-Z0-9]{3,4}$/.test(code)){ fail('not a valid ICAO/station id or "lat,lon" pair'); return; }
+  WX.status='\u2026 looking up '+code; paintWxStatus();
+  fetch('https://api.weather.gov/stations/'+code,{headers:{'Accept':'application/geo+json'}})   // NWS station metadata -> coords
+   .then(function(r){if(!r.ok)throw new Error('station '+code+' not found ('+r.status+')');return r.json();})
+   .then(function(j){
+     var g=j.geometry&&j.geometry.coordinates; if(!g)throw new Error('no coordinates for '+code);
+     SITE.station=code; SITE.lon=g[0]; SITE.lat=g[1];      // [lon,lat]; lat/lon also feed the OM fallback
+     var nm=(j.properties&&j.properties.name)||code;
+     if(b)b.disabled=false;
+     WX.status='location set: '+code+' \u2014 '+nm+' \u00b7 press Live weather'; paintWxStatus();
+   })
+   .catch(function(e){ fail(e.message); });
+}
+function fetchWx(){
+  if(!WX.on)return;
+  if(!siteReady()){ WX.status='\u2715 set a location first'; WX.on=false; paintWxStatus(); syncWxLockout(); return; }
+  if(!SITE.station){ fetchWxFallback(null); return; }       // coords-only mode -> straight to Open-Meteo
+  WX.status='\u2026 fetching '+SITE.station; paintWxStatus();
+  fetch('https://api.weather.gov/stations/'+SITE.station+'/observations/latest',{headers:{'Accept':'application/geo+json'}})
+   .then(function(r){if(!r.ok)throw new Error('NWS HTTP '+r.status);return r.json();})
+   .then(function(j){
+     var p=j.properties||{};
+     var tC=p.temperature&&p.temperature.value; if(tC==null)throw new Error('NWS no temp');
+     var oatF=tC*1.8+32;
+     var dpC=p.dewpoint&&p.dewpoint.value, dpF=(dpC!=null)?dpC*1.8+32:null;
+     var rh=p.relativeHumidity&&p.relativeHumidity.value;
+     if(rh==null&&dpF!=null)rh=rhFromDp(oatF,dpF);
+     if(rh==null)throw new Error('NWS no humidity');
+     var t=p.timestamp?new Date(p.timestamp):null;
+     applyWx(oatF,rh,dpF,SITE.station,t?(z2(t.getUTCHours())+':'+z2(t.getUTCMinutes())+'Z'):'');
+   })
+   .catch(function(e){ fetchWxFallback(e); });
+}
+function fetchWxFallback(prev){
+  if(!WX.on)return;
+  if(SITE.lat==null){ WX.status='\u2715 no coordinates for fallback \u2014 set a location'; WX.on=false; paintWxStatus(); syncWxLockout(); return; }
+  fetch('https://api.open-meteo.com/v1/forecast?latitude='+SITE.lat+'&longitude='+SITE.lon+'&current=temperature_2m,relative_humidity_2m,dew_point_2m&temperature_unit=fahrenheit&timezone=UTC')
+   .then(function(r){if(!r.ok)throw new Error('OM HTTP '+r.status);return r.json();})
+   .then(function(j){
+     var c=j.current||{};
+     var lbl=SITE.station?('Open-Meteo ('+SITE.station+' down)'):'Open-Meteo';
+     applyWx(c.temperature_2m,c.relative_humidity_2m,(c.dew_point_2m!=null?c.dew_point_2m:null),lbl,(c.time||'').slice(11,16)+'Z');
+   })
+   .catch(function(e){
+     WX.status='\u2715 weather fetch failed ('+((prev&&prev.message)||e.message)+') \u2014 using manual'; WX.on=false;
+     paintWxStatus(); syncWxLockout();
+   });
+}
+function syncWxLockout(){
+  ['oat','wb'].forEach(function(k){if(SLIDER_INPUT[k])SLIDER_INPUT[k].disabled=WX.on;});
+  var b=document.getElementById('btn_wx');
+  if(b){ b.disabled=!siteReady(); b.classList.toggle('on',WX.on); b.textContent=WX.on?('Live: '+(SITE.station||'coords')+' \u25cf'):'Live weather'; }
+}
+function toggleWx(){
+  if(!WX.on && !siteReady()){ WX.status='Set a location first (ICAO e.g. KJFK, or lat,lon)'; paintWxStatus(); return; }
+  WX.on=!WX.on; syncWxLockout();
+  if(WX.on){ fetchWx(); WX.timer=setInterval(fetchWx,600000); }   // METARs ~hourly; poll every 10 min
+  else{ if(WX.timer){clearInterval(WX.timer);WX.timer=null;} WX.status='Manual OAT/WB (live feed off)'; paintWxStatus(); }
+}
+function buildWx(){
+  var el=document.getElementById('sec_amb'); if(!el)return;
+  var wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0 10px';
+  var inp=document.createElement('input'); inp.id='wx_station'; inp.type='text';
+  inp.placeholder='ICAO (e.g. KJFK) or lat,lon';
+  inp.title='Live-weather location: a US METAR/ICAO station id (e.g. KJFK), or a global "lat,lon" pair for Open-Meteo.';
+  inp.style.cssText='font:inherit;font-size:12px;padding:4px 8px;border:0.5px solid var(--bd2);background:var(--bg1);color:var(--text);border-radius:var(--r);width:182px';
+  inp.onkeydown=function(e){ if(e.key==='Enter'){ setSite(inp.value); } };
+  var set=document.createElement('button'); set.className='tog'; set.textContent='Set location'; set.style.minWidth='86px';
+  set.onclick=function(){ setSite(inp.value); };
+  var b=document.createElement('button'); b.id='btn_wx'; b.className='tog'; b.textContent='Live weather'; b.disabled=true; b.onclick=toggleWx;
+  var rf=document.createElement('button'); rf.className='tog'; rf.textContent='\u21bb'; rf.title='Refresh now'; rf.style.minWidth='30px';
+  rf.onclick=function(){ if(WX.on)fetchWx(); };
+  var st=document.createElement('div'); st.id='wx_status'; st.textContent=WX.status;
+  st.style.cssText='font-size:11px;opacity:.85;flex:1 1 100%;line-height:1.35';
+  wrap.appendChild(inp); wrap.appendChild(set); wrap.appendChild(b); wrap.appendChild(rf); wrap.appendChild(st);
+  el.insertBefore(wrap, el.firstChild);
+}
+
+function buildValves(){
+  var el=document.getElementById('sec_valves'); if(!el)return;
+  function row(label){var r=document.createElement('div'); r.style.cssText='display:flex;align-items:center;gap:8px;margin:5px 0;flex-wrap:wrap'; var l=document.createElement('span'); l.textContent=label; l.style.cssText='min-width:172px;font-size:12.5px'; r.appendChild(l); el.appendChild(r); return r;}
+  function sld(parent,get,set){var i=document.createElement('input'); i.type='range'; i.min=0;i.max=100;i.step=5; i.value=Math.round(get()*100); i.style.flex='1'; var v=document.createElement('span'); v.className='cval'; v.textContent=Math.round(get()*100)+'%'; i.oninput=function(){set(+i.value/100); v.textContent=i.value+'%';}; parent.appendChild(i); parent.appendChild(v);}
+  function tog(parent,get,set,onT,offT){var b=document.createElement('button'); b.className='tog'; b.style.minWidth='88px'; function s(){var v=get()>0.5; b.classList.toggle('on',v); b.textContent=v?onT:offT;} b.onclick=function(){set(get()>0.5?0:1); s();}; s(); parent.appendChild(b);}
+  var r;
+  r=row('CT-1 return CV (BAS)'); sld(r,function(){return VLV.ret[0];},function(v){VLV.ret[0]=v;});
+  r=row('CT-2 return CV (BAS)'); sld(r,function(){return VLV.ret[1];},function(v){VLV.ret[1]=v;});
+  r=row('CT-1 supply butterfly'); sld(r,function(){return VLV.sup[0];},function(v){VLV.sup[0]=v;});
+  r=row('CT-2 supply butterfly'); sld(r,function(){return VLV.sup[1];},function(v){VLV.sup[1]=v;});
+  r=row('Bypass isolation'); tog(r,function(){return VLV.bypIso;},function(v){VLV.bypIso=v;},'open','SHUT');
+  r=row('CTP-1 discharge MPV'); tog(r,function(){return VLV.pDis[0];},function(v){VLV.pDis[0]=v;},'open','SHUT');
+  r=row('CTP-2 discharge MPV'); tog(r,function(){return VLV.pDis[1];},function(v){VLV.pDis[1]=v;},'open','SHUT');
+  r=row('Pump cross-connect butterfly'); tog(r,function(){return VLV.xconn;},function(v){VLV.xconn=v;},'open','SHUT (CTP-2 isolated)');
+  r=row('Basin quick-fill (norm. OFF)'); tog(r,function(){return VLV.fill[0];},function(v){VLV.fill[0]=v;},'CT-1 ON','CT-1 off'); tog(r,function(){return VLV.fill[1];},function(v){VLV.fill[1]=v;},'CT-2 ON','CT-2 off');
+}
+
+// ================= init =================
+buildActuators(); buildEnables(); buildValves();
+buildSliders('sec_sp',SP_SPECS,CFG);
+buildSliders('sec_tower',TOWER_SPECS,CFG);
+buildSliders('sec_hyd',HYD_SPECS,CFG);
+buildSliders('sec_pid',PID_SPECS,CFG);
+buildSliders('sec_amb',AMB_SPECS,CFG);
+buildSliders('sec_bld',BLD_SPECS,CFG);
+buildWx(); buildLoadCtl(); buildClock();
+setMode(CFG.mode); setPump(CFG.pump); setSingleTower(CFG.singleTower); setLeadTower(CFG.leadTower); setLoadSource(CFG.loadSource);
+step(); render();
+setInterval(function(){if(!running)return;var n=Math.max(1,Math.round(speed/DT));for(var i=0;i<n;i++)step();render();},100);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
