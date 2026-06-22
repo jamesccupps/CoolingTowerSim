@@ -113,7 +113,7 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
   <h4>What this is</h4>
   <p>A transient, physics-based simulation of the building’s condenser-water loop — a <b>control and efficiency test bench</b> for rehearsing the cooling-tower sequence, trying setpoints, and weighing pump and fan staging against energy use. It is not a data historian. The same calibrated engine runs here and in the headless model used for analysis.</p>
   <h4>The real system it represents</h4>
-  <p>A <b>~560-ton open evaporative tower</b> — two crossflow cells (<b>CT-1 / CT-2</b>), 564 nominal tons, with (2) 25 HP induced-draft fans — rejects building heat to outdoor air. Two <b>75 HP</b> vertical-inline pumps (<b>CTP-1 / CTP-2</b>, lead/standby, one running at a time) circulate condenser water to the building’s water-source heat pumps, AHU compressors, and computer-room cooling. The plant is mid-renovation, which is why single-cell operation is a first-class mode here. <b>Note:</b> the in-service tower is currently packed with excess fill media, so it is air-side-limited and under-performs its nameplate — the model is calibrated to the tower <i>as it runs today</i>, to be re-fit when the corrected-media tower comes online.</p>
+  <p>A <b>~560-ton open evaporative tower</b> — two crossflow cells (<b>CT-1 / CT-2</b>), 564 nominal tons, with (2) 25 HP induced-draft fans — rejects building heat to outdoor air. Two <b>75 HP</b> vertical-inline pumps (<b>CTP-1 / CTP-2</b>, lead/standby, one running at a time) circulate condenser water to the building’s water-source heat pumps, AHU compressors, and computer-room cooling. One cell runs at a time, so single-cell operation is a first-class mode here. <b>Note:</b> the in-service tower is currently airflow-limited and under-performs its nameplate, so the model is calibrated to the tower <i>as it runs today</i>.</p>
   <h4>What’s under the hood</h4>
   <div class="specrow">
     <span class="chip">pump affinity laws + mfr head curve</span>
@@ -124,16 +124,16 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
     <span class="chip">documented control sequence</span>
   </div>
   <p>The bench is modeled on the <b>actual installed equipment</b>, not just automation data. The pump head curve is the manufacturer submittal; the cooling-tower capacity, fan power, and basin volume are the tower nameplate and engineering data; the condenser-water piping is the real Sch 40 runs — sizes and lengths taken off the building prints; and the setpoints and control logic are the building’s own sequence of operations. The BAS field trends then calibrate the loop resistances and validate the result against measured flow, pressure, and temperature — but the equipment skeleton is the real plant.</p>
-  <p>Hydraulic resistances, the pump differential-pressure curve, the loop transport volumes, and the tower air-side cap were fit to BAS field trends (pump DP, loop flow, supply and return temperature, wet-bulb). The tower’s peak effectiveness is <b>anchored to the tower nameplate (ε<sub>max</sub> = 0.588)</b> and held there pending better data — it is not fit to field. The hydraulics were re-fit 22 June to the live 3rd-floor DP and validated against a controlled pump-speed sweep — the model tracks measured loop flow within ±1.6 % and differential pressure within ±2.4 % across 55–65 % pump speed.</p>
+  <p>Hydraulic resistances, the pump differential-pressure curve, the loop transport volumes, and the tower air-side cap were fit to BAS field trends (pump DP, loop flow, supply and return temperature, wet-bulb). The tower’s peak effectiveness is <b>anchored to the tower nameplate (ε<sub>max</sub> = 0.588)</b> and held there pending better data — it is not fit to field. Against a controlled pump-speed sweep the model tracks measured loop flow within ±1.6 % and differential pressure within ±2.4 %.</p>
   <h4>How to drive it</h4>
   <p>Press <b>Pause/Run</b> and let the sequence operate the plant, or take any actuator to <b>HAND</b> to override it (including over safeties). Watch the faceplate and the supply-temperature trend; use the <b>power draw</b> figure to weigh the energy cost of staging and setpoint choices.</p>
   <h4 style="color:var(--warn-tx)">Known limitations — read before drawing conclusions</h4>
   <ul class="limit">
-    <li><b>Cold-weather tower behavior is unvalidated.</b> Summer is solid — fed true (airport) wet-bulb, the tower reproduces measured supply temperature to <b>~0.94 °F RMS across the full summer load range</b>; the earlier apparent low-wet-bulb optimism was the BAS sensor reading wet-bulb ~3.6 °F low, not a model error. But there is no sub-freezing field data yet, so the winter freeze/bypass physics and the fan-speed sensitivity (needs a fixed-pump fan sweep) are provisional — don't trust absolute winter or free-cooling-hours numbers until a cold-spell trend is captured.</li>
+    <li><b>Cold-weather behavior is unvalidated.</b> In summer, fed true (airport) wet-bulb, the tower reproduces measured supply temperature to <b>~0.94 °F RMS across the load range</b>. But there is no sub-freezing field data yet, so the winter freeze/bypass physics and fan-speed sensitivity are provisional — don't rely on absolute winter or free-cooling-hour numbers.</li>
     <li><b>Loop load is treated as equal to tower heat rejection.</b> The compressor heat-of-rejection uplift (~×1.2) is not applied yet, so rejection and tower duty read conservative relative to the true condenser load.</li>
     <li><b>The differential-pressure loop is modeled as a function of flow.</b> That is appropriate for this constant-flow building (no per-unit two-way valves — the loads are always flowing), but it cannot reproduce a measured DP-reset schedule.</li>
-    <li><b>The building-load model is a warm-season fit.</b> The occupied-load floor was re-fit 22 June across five weekdays of detailed trends (≈900 aligned points, near-zero bias), so it is no longer a single-day, by-construction match — but it is still a summer fit; winter/heating-season loop load is modeled, not measured.</li>
-    <li><b>Thermal response is quasi-steady.</b> Steady-state supply temperature tracks the measured field to about 0.94 °F RMS over ~900 points across the full summer load range. The building and return nodes carry no heat capacitance, so a sudden load step gives a slightly sharp return-temperature response; transient accuracy is not yet characterized. Steady-state behavior is the trustworthy part.</li>
+    <li><b>The building-load model is a warm-season fit.</b> The occupied-load floor is calibrated against weekday field trends; winter/heating-season loop load is modeled, not measured.</li>
+    <li><b>Thermal response is quasi-steady.</b> Steady-state supply temperature tracks the field to about 0.94 °F RMS. The building and return nodes carry no heat capacitance, so a sudden load step gives a slightly sharp return-temperature response; transient accuracy is not yet characterized. Steady-state behavior is the trustworthy part.</li>
   </ul>
 </div></details>
 
@@ -444,7 +444,7 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
     <button id="btn_lt2" onclick="setLeadTower('CT-2')" title="CT-2 fan leads.">CT-2</button>
   </div>
   <div id="sec_manual"></div>
-  <div class="note">To replicate the live plant (Pump 1 + Tower 2, single cell): set <b>Single</b> feeding <b>CT-2</b>, lead pump CTP-1, Pump &rarr; <b>HAND 60%</b>, CT-2 fan &rarr; <b>HAND 50 Hz</b> &rarr; expect &asymp;1,215 gpm, 8.2 psi (matches the 22 June BAS to ~1%). The historical 62% / 58 Hz field point #1 is &asymp;1,270 gpm / 8.8 psi, CWS&asymp;71&deg;F.</div>
+  <div class="note">To replicate the live plant (Pump 1 + Tower 2, single cell): set <b>Single</b> feeding <b>CT-2</b>, lead pump CTP-1, Pump &rarr; <b>HAND 60%</b>, CT-2 fan &rarr; <b>HAND 50 Hz</b> &rarr; expect &asymp;1,215 gpm, 8.2 psi (matches the BAS to ~1%). A second measured point: 62% / 58 Hz &asymp;1,270 gpm / 8.8 psi, CWS&asymp;71&deg;F.</div>
 </div></details>
 
 <details><summary>Manual valves &amp; isolation <span class="hint">basin level, air-ingestion, dead-head, overflow</span></summary>
@@ -480,24 +480,24 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
 <script>
 // ================= state =================
 var DT=0.1;
-var V={sup:1150,ret:1100,bldg:1050,basin:750};   // BASIN now NAMEPLATE-GROUNDED: water = (op wt 25,220 - dry 11,600)/8.34 = 13,620 lb = 1,633 gal both cells at OVERFLOW = ~817/cell; ~750/cell at running sump. The ~400/cell the basin lost vs the old 1100 guess is re-attributed to V.sup (10" suction+discharge piping, where it physically is) so the measured transients are preserved. Lags: CWS->CWR (bldg+ret)=(1050+1100)/1063=2.0 min (field 2 min); cold leg (sup+basin)=(1150+750)/1063=1.79 min (field ~1.8 min fan-off). Total ~4050 gal -- pinned by BOTH transients, NOT the 10k geometric pipe-trace (which the 2-min hot-leg transport falsifies).
+var V={sup:1150,ret:1100,bldg:1050,basin:750};   // loop transport volumes (gal per node), split so the modeled hot- and cold-leg transport lags match the measured field transients (~2 min hot leg, ~1.8 min cold leg fan-off).
 var H0=163.4, AC=(163.4-135.5)/(1850*1850);
-var FAN_KW=25*0.746/(0.92*0.97);   // 25 HP tower fan -> ELECTRICAL kW at full speed (shaft HP / motor 0.92 / VFD 0.97 ~= 20.9 kW). Belt loss folded into motor eff; refine when fan-motor nameplate + a VFD kW-vs-Hz sweep land.
+var FAN_KW=25*0.746/(0.92*0.97);   // 25 HP tower fan -> electrical kW at full speed (shaft HP / motor 0.92 / VFD 0.97).
 
 var CFG={
-  sp:75, lowLim:50, bypHold:65, bypClose:70, band:2, timer:10, dpSP:8.5,   // lowLim 60->50: WSHPs trip ~50F entering water (field obs) — the real loop floor, not 60. Below it = fans off + bypass 100% emergency. Raise a couple deg for protection margin if desired.
-  pumpMin:0.50, gpmFloor:700, freeze:38, oatLock:25, minCellFlow:459,  // minCellFlow 459 = 50% of the CERTIFIED per-cell design flow (submittal: 1836 gpm for the 2-cell unit -> 918 gpm/cell; was 423 off the nominal 846). Below ~50% turndown over a WETTED crossflow cell in subfreezing air the fill can wet unevenly (wet/dry lanes ice) -> FREEZE RISK, even with the bulk loop ~50F (the film reaches WET-BULB, not bulk temp). NOTE this tower is CROSSFLOW (gravity hot-water basin + weir dams), which degrades more gracefully at low flow than counterflow spray -> the 459 floor is a conservative guardrail, not a cliff. Sources: ASHRAE 90.1 / Kent Peterson PE (ASHRAE Jrnl 2/2016) 50% min turndown; SPX/Marley TR-015 + EVAPCO EEF#13 "never modulate a partial bypass / reduce CELLS not flow-per-cell." This is the exact failure mode if the warming bypass diverts too much flow off the tower. // freeze 45->38: the SOO's 45F sits ABOVE normal cold operation (the old towers ran basins in the LOW 40s with flow and never froze), so a 45F trip would force the emergency close-bypass during routine winter running. The emergency (close bypass, ALL flow to tower) belongs only when the tower "actually gets really cold" — below the normal low-40s floor. 38F = approaching real ice risk. RECONCILE vs the documented SOO (45F).
+  sp:75, lowLim:50, bypHold:65, bypClose:70, band:2, timer:10, dpSP:8.5,   // CWS setpoint / WSHP low-limit (below it: fans off + bypass) / bypass hold + close / stage band / stage timer / DP setpoint.
+  pumpMin:0.50, gpmFloor:700, freeze:38, oatLock:25, minCellFlow:459,  // pump min speed / GPM floor / basin freeze trip / single-cell OAT lockout / min per-cell tower flow. minCellFlow ~= 50% of certified per-cell design flow: below it a wetted crossflow cell in subfreezing air can wet unevenly and ice (FREEZE RISK) even with the bulk loop near the low-limit -- a guardrail against diverting too much flow off the tower (refs: ASHRAE 90.1; reduce CELLS, not flow-per-cell).
   enLag:true, enBypass:true, enFreeze:true, enLowLimit:true, balancedFans:false,  // balancedFans: dual-mode fans run together at equal speed (parallel) instead of split-range lead/lag
-  epsMax:0.588, fanExp:0.6, wlExp:1.05, wlRef:846, fanFloor:0.05, apprMin:3.5, airCap:51, fanFixed:0.12, minLeave:43,  // minLeave = coldest the FLOWING tower water can reach (degF): liquid water can't be driven below freezing, and an open tower is run >=43F (manufacturer min process-fluid temp, ice avoidance); field obs put the old towers' floor in the low 40s at this flow. Stops cold-weather from integrating to absurd sub-freezing temps. e-NTU. apprMin 6.0->3.5 fit to the 24-hr data (low-load min approach; was ~1F warm overnight). airCap = air-side (Merkel) heat-rejection limit, tons per (Btu/lb) at full fan; at low fan the choked fill is airflow-limited so leaving water pins near a floor & approach widens as WB drops (fit to the 6/17 5-hr 45Hz run). fanFixed = per-running-fan fixed-loss fraction of nameplate (VFD/motor idle + low-speed inefficiency); makes fan kW = FAN_KW*(fanFixed+(1-fanFixed)*speed^3), so running TWO fans has TWO fixed costs (why lead/lag can beat balanced at low load). wlExp=1.05 fit to TWO airport-WB points 6/17 (62%/58Hz->eps0.42 @1275gpm, 55%/45Hz->eps0.45 @1072gpm; ~10F approach to TRUE WB). Supersedes old 1.5, which used the BAS WB sensor ~5F low -> apparent eps0.37/~15F approach. Still a single overloaded + choked-fill cell; fan 58->45Hz barely moved eps (airflow not the limit). Re-fit at dual-cell / corrected fill. apprMin=min approach to WB (fixes low-load over-cooling). fanFloor=natural-draft airflow, fan off.
-  kser:1.95e-5, kcell:2.0e-6, static:15, kdp:8.2/(1215*1215), cvByp:900,   // static 12->15 ft = the OPEN-TOWER LIFT (basin water level up to the tower return distribution ~15', per the elevation sketch). NOT zero: the building loop (down to flrs 1-13 & back up) is a recovered closed siphon, but the open tower at the top breaks it -- the pump lifts to the tower discharge w/ no recovery. Pump min set to 50% per operating policy (the hard floor for this plant). The pump physically cannot circulate below ~30.3% (where shutoff head 163.4*0.303^2 = 15 ft == the open-tower lift, so solveHyd returns q=0 -- a knife-edge); 50% sits well above that with ~910 gpm single-cell. A manual HAND drag below ~30.3% still deadheads, but the PUMP DEADHEAD alarm flags it. RE-FIT 6/22 to the live 3rd-floor BAS readings (single CT-2, pump 60%): kser 2.11e-5->1.95e-5 + kdp re-anchored 8.8/1275^2 -> 8.2/1215^2 (the fresh point: 1215 gpm @ 8.2 psi DP). Now 55%->~1077 vs field 1075, 60%->~1215 vs 1215, 62%->~1269 vs 1287 (-1.4%) -- a clean 3-point fit (the old 2.11e-5 ran ~2.5% low on flow across the whole band). kdp 5.55e-6 also matches the multi-detailed-trend mean. Re-fit again at dual-cell.
+  epsMax:0.588, fanExp:0.6, wlExp:1.05, wlRef:846, fanFloor:0.05, apprMin:3.5, airCap:51, fanFixed:0.12, minLeave:43,  // tower model (e-NTU): epsMax = design effectiveness; fanExp = NTU-vs-fan-speed exponent; wlExp/wlRef = overload derate above per-cell nominal flow; fanFloor = natural-draft airflow (fan off); apprMin = min approach to wet-bulb; airCap = air-side (Merkel) reject limit (tons per Btu/lb at full fan); fanFixed = per-fan fixed electrical loss, making fan kW = FAN_KW*(fanFixed+(1-fanFixed)*speed^3) so two fans carry two fixed costs (why lead/lag can beat balanced at low load); minLeave = cold-weather leaving-water floor (ice avoidance).
+  kser:1.95e-5, kcell:2.0e-6, static:15, kdp:8.2/(1215*1215), cvByp:900,   // hydraulics: kser = building-loop resistance, kcell = per-cell tower resistance (both solved against the pump curve for flow); static = open-tower lift (~15 ft, basin up to the tower distribution; the building loop itself is a recovered siphon, but the open tower at the top breaks it); kdp = DP-vs-flow coefficient; cvByp = warming-bypass Cv. kser/kdp fit to the field pump-speed sweep; the pump deadheads below ~30% where shutoff head drops under the open-tower lift.
   fanKp:0.25, fanKi:0.04, bypKp:0.30, bypKi:0.05, dpKp:0.02, dpKi:0.02,  // dp retuned for dt=0.1
   load:450, wb:60, oat:73, mode:'dual', pump:'CTP-1', singleTower:'CT-1', leadTower:'CT-1',
   // ---- weather-driven building-load model (from the building HVAC summary): loop load =
   // CRAC/IT floor + economizer-gated AHU cooling + bidirectional heat-pump (cool warm / heat cold) ----
   loadSource:'manual',                       // 'manual' = use the load slider; 'building' = compute from OAT/WB + schedule
-  base24:75,                                 // 24/7 floor (tons): CRAC/IT (IT-A 2x20 + IT-B 4 + IT-C 2) + always-on heat pumps + after-hours. Trimmed 100->75 to match field overnight rejection (range x flow over 531 trend pts = ~70-80 t, not the old ~106 t read).
-  occBase:270, ahuPeak:450, ahuMin:30,       // occupied AHU floor (internal-gain dominated, ~flat vs OAT) / hot-day max / economizing residual. 210->270: RE-FIT to 5 weekdays of DETAILED per-sensor trends 6/16-6/22 (904 aligned pts; actual load = flow*range/24 vs buildingLoad). occBase 270 -> load-residual bias -1t (RMS 40t), by-block error flat (wk-AM -14, wk-mid +10, wk-nite +9); occBase 210 under-predicted the occupied day by -17t and the MORNING-PULLDOWN block by -74t. The earlier 270->210 cut was fit to the lone MILD 6/18 day (really ~180t mean, OAT max 61F) -- an over-correction. Hot-day calib (ahuPeak*cd) untouched.
-  hpHeat:55,                                 // WSHP heating draw FROM the loop at design heating (diversified peak, < the ~72t connected). 75->55: the old 75 EXACTLY cancelled base24 (75) -> 0 net in deep winter, which erased the firm ~46t year-round CRAC/IT rejection (IT-A 2x20 + IT-B 4 + IT-C 2) that runs 24/7/365. Now deep-winter net floors ~+20t (CRAC-dominated). The loop CAN still go net-negative if the HP draw exceeds the base. ASSUMPTION pending a real winter trend — tune base24/hpHeat once a cold-spell export exists.
+  base24:75,                                 // 24/7 base floor (tons): CRAC/IT + always-on heat pumps. The measured overnight rejection floor.
+  occBase:270, ahuPeak:450, ahuMin:30,       // occupied AHU floor (internal-gain dominated, ~flat vs OAT) / hot-day max / economizing residual. Fit to weekday field trends.
+  hpHeat:55,                                 // WSHP heat drawn FROM the loop at design heating (diversified peak) -- can drive the loop net-negative in deep cold. Winter value is modeled, pending a cold-spell trend.
   balOAT:55, designOAT:88, htgOAT:10,        // cooling balance pt / design cooling OAT / design heating OAT
   econOAT:60, econEnth:19,                    // AHU air-side economizer: free-cool when OAT < 60F AND enthalpy < 19 Btu/lb
   todMin:840, weekday:true                    // sim clock: minutes since midnight (840=14:00); weekday = M-F (AHUs scheduled 05:00-18:00, staggered)
@@ -511,7 +511,7 @@ var MAN={pump:0.62, fan1:58/60, fan2:0, byp:0};
 // quick-fill makeup (normally OFF/winterized). Real makeup is on the SUPPLY side AFTER the pumps, so a
 // basin whose RETURN is shut gets NO refill and drains to air. Basins separated.
 var VLV={ ret:[1,1], sup:[1,1], bypIso:1, xconn:1, pDis:[1,1], fill:[0,0] };
-var BASIN_GAL=817, FILL_GPM=40;   // nameplate-derived: (op 25,220 - dry 11,600 lb)/8.34 = 1,633 gal / 2 cells = 817 gal/cell at basin OVERFLOW (the level-integration ceiling). Running sump sits below this.
+var BASIN_GAL=817, FILL_GPM=40;   // nameplate-derived basin volume: ~817 gal/cell at overflow; the running sump sits below this.
 var running=true, speed=2;
 
 function fillArr(){var a=[];for(var i=0;i<400;i++)a.push(80);return a;}
@@ -549,7 +549,7 @@ function solveHyd(N,bp,cells){
   var gt=1/Math.sqrt(kt), gb=1/Math.sqrt(kb);
   var ft=gt/(gt+gb);
   var qt=q*ft, qb=q-qt;
-  var x=q/1770.8, eta=0.85*(2*x-x*x); if(eta<0.35)eta=0.35;   // part-load pump eff: 0.85 at BEP 1770.8 gpm, falls off left of BEP (loop runs ~1068-1350 gpm single-cell -> eta ~0.71-0.80). Replaces flat 0.85 (bhp was ~9-19% low in band). Refine w/ digitized manufacturer eta curve.
+  var x=q/1770.8, eta=0.85*(2*x-x*x); if(eta<0.35)eta=0.35;   // part-load pump efficiency: 0.85 at BEP (1770.8 gpm), falling off below BEP.
   var bhp=head>0?q*head/(3960*eta):0;
   return {q:q,qt:qt,qb:qb,head:head,dp:CFG.kdp*q*q,bhp:bhp};
 }
@@ -560,7 +560,7 @@ function towerLeave(tin,qc,s){
   // small natural-draft floor when the fan is off; cold/dry winter air rejects more via the larger
   // (Tin - WB) potential. The MIN-APPROACH floor (CFG.apprMin) encodes the real minimum approach a
   // finite-NTU tower holds: without it, constant-eps lets the leaving water collapse to the wet-bulb
-  // at low load and over-cool the loop BELOW outdoor dry-bulb (field-disproven, 6/16-17 trend).
+  // at low load and over-cool the loop BELOW outdoor dry-bulb (disproven by field data).
   // wl cap is min(1.0,..) so the water term only DERATES an overloaded cell, never enhances below
   // design flow -- keeps dual-cell (per-cell flow < 846) at the 0.588 nameplate.
   var G=Math.max(s,CFG.fanFloor);                            // airflow as a fraction of design
@@ -571,7 +571,7 @@ function towerLeave(tin,qc,s){
   // AIR-SIDE (Merkel) heat-rejection cap: the choked fill is airflow-limited at low fan, so the leaving
   // water can't drop below the floor where the load equals what the air can actually carry. Leaving temp
   // = WARMER of the water-side (e-NTU) result and this air-side floor -> pins CWS and widens the approach
-  // as WB drops (matches 6/17 5-hr 45Hz: CWS ~73-74 while WB swung 60-64). Bisection for the floor.
+  // as WB drops (matches the low-fan field runs). Bisection for the floor.
   var hWB=enthSat(CFG.wb), lo=CFG.wb+0.3, hi=tin;
   for(var it=0;it<14;it++){ var ta=(lo+hi)*0.5; if(qc*(tin-ta)/24 - CFG.airCap*G*(enthSat(ta)-hWB) > 0) lo=ta; else hi=ta; }
   var taStar=(lo+hi)*0.5; if(taStar>tout)tout=taStar;
@@ -652,7 +652,7 @@ function step(){
     // FREEZE PROTECTION (priority): CLOSE the bypass and force ALL flow UP through the tower so the warm
     // return continuously flushes the fill + basin and they can't freeze. "Rather a cold loop than a frozen
     // tower." Matches the manufacturer rule (full flow over the fill, NEVER a throttled/partial bypass in a
-    // freeze) and the actual field sequence. Supersedes the old (backwards) bypass-100%-on-freeze.
+    // freeze) and the actual field sequence.
     C.lead=0; C.lag=0; C.bypass=0;
     C.fan.reset(); ALARMS.freeze=true;
   } else if(low){
@@ -894,21 +894,21 @@ var SP_SPECS=[
   {key:'oatLock',label:'OAT single lockout',min:0,max:50,step:1,unit:'°F',desc:'Below this OAT, single-tower fan operation is locked out (freeze protection of the idle cell).'}
 ];
 var TOWER_SPECS=[
-  {key:'epsMax',label:'Tower eps_max',min:0.30,max:0.80,step:0.005,dec:3,desc:'Design effectiveness at full fan + nominal flow (catalog 95→85 @78WB = 0.588; held, field-validated). As-sold selection is 85°F @74°F WB / 11°F approach ≈ 0.54. Anchors the e-NTU curve.'},
+  {key:'epsMax',label:'Tower eps_max',min:0.30,max:0.80,step:0.005,dec:3,desc:'Design effectiveness at full fan + nominal flow (~0.588, tower nameplate). Anchors the e-NTU curve.'},
   {key:'minLeave',label:'Min leaving water',min:33,max:55,step:0.5,unit:'°F',desc:'Cold-weather floor — coldest the FLOWING tower water can reach. Open water can’t go below freezing and the tower is run ≥43°F (manufacturer min) to avoid icing; the old towers floored in the low 40s at this flow. Stops winter runs from integrating to absurd sub-freezing temps.'},
   {key:'fanExp',label:'NTU airflow exponent',min:0.4,max:1.1,step:0.05,dec:2,desc:'How tower capacity scales with fan speed: NTU ∝ speed^this (~0.6). Lower = less fan-sensitive.'},
   {key:'wlExp',label:'Water-load / overload derate',min:0,max:2.6,step:0.05,dec:2,desc:'Effectiveness derate when a cell runs above its nominal flow (overloaded). 1.05 fit to the single overloaded cell.'},
-  {key:'wlRef',label:'Water-load ref',min:400,max:1200,step:10,unit:'gpm',desc:'Per-cell flow where the overload derate starts (catalog nominal 846 gpm; as-sold certified selection 918 gpm/cell).'},
+  {key:'wlRef',label:'Water-load ref',min:400,max:1200,step:10,unit:'gpm',desc:'Per-cell flow where the overload derate starts (per-cell nominal ~846 gpm).'},
   {key:'fanFloor',label:'Natural-draft airflow (fan off)',min:0,max:0.4,step:0.005,dec:3,desc:'Airflow fraction with the fan OFF (stack/natural draft) — sets fan-off winter cooling. 0.05.'},
-  {key:'apprMin',label:'Min approach to WB',min:0,max:12,step:0.5,unit:'°F',desc:'Closest the leaving water gets to wet-bulb at low load (3.5°F, fit to the 24-hr data). Prevents over-cooling toward WB.'},
-  {key:'airCap',label:'Air-side reject cap',min:20,max:120,step:1,unit:'t/(Btu/lb)',desc:'Air-side (Merkel) heat-rejection limit at full fan. At low fan the choked fill is airflow-limited, so leaving water pins near a floor and the approach widens as wet-bulb drops. Fit to the 6/17 45Hz run; lower = more airflow-limited.'},
+  {key:'apprMin',label:'Min approach to WB',min:0,max:12,step:0.5,unit:'°F',desc:'Closest the leaving water gets to wet-bulb at low load (~3.5°F). Prevents over-cooling toward WB.'},
+  {key:'airCap',label:'Air-side reject cap',min:20,max:120,step:1,unit:'t/(Btu/lb)',desc:'Air-side (Merkel) heat-rejection limit at full fan. At low fan the choked fill is airflow-limited, so leaving water pins near a floor and the approach widens as wet-bulb drops. Lower = more airflow-limited.'},
   {key:'fanFixed',label:'Fan fixed-loss fraction',min:0,max:0.4,step:0.02,dec:2,desc:'Per-running-fan fixed electrical loss (VFD/motor idle + low-speed inefficiency) as a fraction of nameplate. Why running two fans costs more at low load (lead/lag vs balanced).'}
 ];
 var HYD_SPECS=[
-  {key:'kser',label:'k_series',min:0.5,max:6.0,step:0.05,unit:'×1e-5',factor:1e-5,dec:2,desc:'Building-loop flow resistance (dominant term) — sets flow vs pump speed. Re-fit 22 June (1.95e-5) to the live 3rd-floor BAS pump sweep; validated 55–65%.'},
+  {key:'kser',label:'k_series',min:0.5,max:6.0,step:0.05,unit:'×1e-5',factor:1e-5,dec:2,desc:'Building-loop flow resistance (dominant term) — sets flow vs pump speed. Fit to the field pump-speed sweep.'},
   {key:'kcell',label:'k_tower/cell',min:0.5,max:10,step:0.1,unit:'×1e-6',factor:1e-6,dec:1,desc:'Per-cell tower-branch flow resistance.'},
   {key:'static',label:'Static head',min:0,max:40,step:1,unit:'ft',desc:'Net static lift the pump sees: the OPEN-TOWER lift (~15 ft, basin level up to the tower distribution). The building loop down to the floors is a recovered siphon, but the open tower at the top breaks it — also why the pump deadheads below ~30%.'},
-  {key:'kdp',label:'k_dp',min:1,max:12,step:0.05,unit:'×1e-6',factor:1e-6,dec:2,desc:'3rd-floor remote DP vs flow: DP(psi)=k·Q². Re-anchored 22 June to live BAS: 8.2 psi @ 1215 gpm (60% pump); validated 55–65%.'},
+  {key:'kdp',label:'k_dp',min:1,max:12,step:0.05,unit:'×1e-6',factor:1e-6,dec:2,desc:'3rd-floor remote DP vs flow: DP(psi)=k·Q². Anchored to the measured DP at field flow.'},
   {key:'cvByp',label:'Bypass Cv (full)',min:200,max:1500,step:25,desc:'Flow coefficient of the 6" warming bypass at 100% open (sets how much it short-circuits).'}
 ];
 var PID_SPECS=[
@@ -916,7 +916,7 @@ var PID_SPECS=[
   {key:'fanKi',label:'Fan Ki',min:0,max:0.3,step:0.005,dec:3,desc:'Integral gain of the fan PID.'},
   {key:'bypKp',label:'Bypass Kp',min:0,max:1,step:0.01,dec:2,desc:'Proportional gain of the warming-bypass PID (CWS → bypass valve).'},
   {key:'bypKi',label:'Bypass Ki',min:0,max:0.3,step:0.005,dec:3,desc:'Integral gain of the bypass PID.'},
-  {key:'dpKp',label:'DP Kp',min:0,max:0.1,step:0.002,dec:3,desc:'Proportional gain of the pump DP PID (3rd-floor DP → pump speed). Retuned to kill the limit cycle.'},
+  {key:'dpKp',label:'DP Kp',min:0,max:0.1,step:0.002,dec:3,desc:'Proportional gain of the pump DP PID (3rd-floor DP → pump speed).'},
   {key:'dpKi',label:'DP Ki',min:0,max:0.06,step:0.002,dec:3,desc:'Integral gain of the pump DP PID (directional anti-windup).'}
 ];
 var AMB_SPECS=[
@@ -925,7 +925,7 @@ var AMB_SPECS=[
   {key:'oat',label:'OAT',min:0,max:100,step:1,unit:'°F',desc:'Outdoor air dry-bulb. Drives the economizer changeover and the building load in building mode.'}
 ];
 var BLD_SPECS=[
-  {key:'base24',label:'24/7 base load',min:0,max:220,step:5,unit:'tons',desc:'Always-on load: CRAC/IT (IT-A 2x20 + IT-B 4 + IT-C 2) + 24/7 heat pumps + after-hours. The overnight floor (~75 t, from range x flow over 531 trend pts).'},
+  {key:'base24',label:'24/7 base load',min:0,max:220,step:5,unit:'tons',desc:'Always-on load: CRAC/IT (IT-A 2x20 + IT-B 4 + IT-C 2) + 24/7 heat pumps + after-hours. The overnight floor (~75 t).'},
   {key:'occBase',label:'Occupied AHU floor',min:0,max:450,step:10,unit:'tons',desc:'AHU compressor load during occupied hours from internal gains + ventilation — stays ~flat vs OAT (high even on cool mornings). The weekday-morning step.'},
   {key:'ahuPeak',label:'AHU hot-day max',min:0,max:700,step:10,unit:'tons',desc:'Hot-day AHU cooling; the weather term only exceeds the occupied floor on warm days toward design (~88F).'},
   {key:'ahuMin',label:'AHU residual (econ)',min:0,max:120,step:5,unit:'tons',desc:'Interior-zone cooling the AHUs still reject while economizing (compressors off).'},

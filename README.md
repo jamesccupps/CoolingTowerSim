@@ -1,71 +1,48 @@
 # Condenser-Water Loop — Control Bench
 
-A physics-based, browser-based transient simulator of a commercial building's condenser-water cooling loop — two evaporative cooling-tower cells and lead/standby condenser-water pumps. One self-contained HTML file: no build, no dependencies, no backend.
+A physics-based, browser-based simulator of a commercial building's condenser-water cooling loop — two evaporative cooling-tower cells and lead/standby condenser-water pumps. One self-contained HTML file: no build, no dependencies, no backend.
 
-It's a **control and efficiency test bench**, not a data historian. The point is to rehearse the cooling-tower sequence of operations, try setpoints, compare pump/fan staging strategies, and see the energy cost — all against a model that behaves like a real plant, without touching one. The same simulation engine also runs headless for offline analysis.
-
-The model was calibrated against the building-automation-system (BAS) field trends of a real commercial plant. Every site-specific constant lives in one place, so it can be re-fit to a different plant (see [Adapting to another site](#adapting-to-another-site)).
+It's a **control and efficiency test bench**, not a data historian — a place to rehearse the cooling-tower sequence of operations, try setpoints, compare pump/fan staging, and see the energy cost, against a model calibrated to real plant telemetry. Open `index.html` and it runs.
 
 ![Control bench screenshot](docs/screenshot.png)
 
 ## What it does
 
-- **Live animated process schematic.** Pipe color tracks water temperature, dash speed tracks each pipe's flow, and the fans/pumps spin at their actual modeled speed. Live values are shown at each real sensor and valve location.
-- **The sequence runs the plant.** Tower staging, CWS low-limit protection, freeze logic, and economizer gating operate automatically — or take any actuator to **HAND** to override the sequence, *including over its safeties*, so you can drive the plant into failure modes on purpose.
-- **KPI faceplate:** supply (CWS) / return (CWR) temperature, approach to wet-bulb, loop flow, heat rejection, and live electrical power draw (fans + pump, motor + VFD input) — the number you use to weigh staging and setpoint choices.
-- **Everything is adjustable, live:** setpoints and sequencing thresholds, tower effectiveness knobs, hydraulic resistances, the DP-PID gains, ambient (OAT / wet-bulb), and a weather-driven building-load model.
-- **Optional live weather.** Pick any US METAR/ICAO station (e.g. `KJFK`) or a global `lat,lon` pair, and the sim drives OAT + wet-bulb from real observations (NWS primary, Open-Meteo fallback). This is the only network call; everything else runs locally and offline.
-- **Alarm flags:** cavitation, low flow, low CWS, freeze, OAT lockout, over-HP, air ingestion, basin overflow, pump deadhead, basin low, and ΔT clamp.
+- **Live animated schematic** — pipe color tracks water temperature, dash speed tracks flow, fans and pumps spin at their modeled speed, with live values at each sensor and valve.
+- **The sequence runs the plant** — tower staging, CWS low-limit protection, freeze logic, and economizer gating operate automatically; or take any actuator to **HAND** to override the sequence (including its safeties) and drive the plant into failure modes on purpose.
+- **KPI faceplate** — supply / return temperature, approach to wet-bulb, loop flow, heat rejection, and live electrical power draw (fans + pump).
+- **Everything adjustable, live** — setpoints, sequencing thresholds, tower and hydraulic constants, PID gains, ambient (OAT / wet-bulb), and a weather-driven building-load model.
+- **Optional live weather** — pick any US METAR/ICAO station (e.g. `KJFK`) or a global `lat,lon` pair, and the sim drives OAT + wet-bulb from real observations (NWS, with an Open-Meteo fallback). It's the only network call; everything else runs locally.
+- **Alarm flags** — cavitation, low flow, low / freeze CWS, freeze risk, OAT lockout, over-HP, air ingestion, basin overflow, pump deadhead, basin low, and ΔT clamp.
 
-## The physics
+## The model
 
-- **Pumps** — affinity laws on a digitized manufacturer head curve, with a part-load efficiency curve that falls off either side of BEP. Series/parallel hydraulic resistances are solved against the pump curve to find the operating flow.
-- **Cooling tower** — open evaporative tower modeled with an effectiveness (ε-NTU) / air-side Merkel formulation using the wet-bulb enthalpy driving force; airflow follows fan affinity, with a fixed natural-draft floor when the fan is off.
-- **Thermal transport** — first-order lags on the hot and cold legs, with the transport volumes pinned to the measured loop transients (not a geometric pipe trace).
-- **Building load** — a bidirectional, economizer-gated load model: a 24/7 IT/CRAC floor, an occupancy-scheduled AHU compressor load that collapses to its economizing residual below the OAT/enthalpy limits, plus water-source heat pumps that add to or pull heat from the loop.
-- **Response** — quasi-steady. Steady-state CWS tracks the field trend closely; transient fidelity is bounded (see [Accuracy](#accuracy)).
+- **Pumps** — affinity laws on a manufacturer head curve with a part-load efficiency curve; series / parallel hydraulic resistances are solved against the curve to find the operating flow.
+- **Cooling tower** — an open evaporative tower in effectiveness (ε-NTU) / air-side Merkel form on the wet-bulb enthalpy driving force; airflow follows fan affinity, with a natural-draft floor when the fan is off.
+- **Thermal transport** — first-order lags on the hot and cold legs, pinned to the measured loop transients.
+- **Building load** — economizer-gated: a 24/7 IT/CRAC floor, an occupancy-scheduled AHU load, and bidirectional water-source heat pumps that add to or pull heat from the loop.
 
-## Accuracy
+The hydraulic resistances, pump differential-pressure curve, transport volumes, and tower air-side cap are fit to building-automation (BAS) field trends; the equipment skeleton — tonnage, pump horsepower, pipe sizes, basin volume — is the real installed plant.
 
-The equipment skeleton matches the installed plant: tonnage, pump horsepower, pipe sizes/lengths, and basin volume come from nameplate and engineering data. The hydraulic resistances, the pump differential-pressure curve, the loop transport volumes, and the tower air-side cap were fit to BAS field trends — pump DP, loop flow, supply/return temperature, and wet-bulb. Steady-state supply temperature reproduces the field trend to roughly **0.7 °F RMS**, and modeled loop flow lands within a few percent at the calibrated operating points.
+## Accuracy & limitations
 
-It's a model, best used for *relative* comparisons (this staging vs. that one, this setpoint vs. that one) and for rehearsing sequences. Current limitations:
+It's a model, best used for **relative** comparisons (this staging vs. that one, this setpoint vs. that one) and for rehearsing sequences. In summer, fed true wet-bulb, steady-state supply temperature tracks the field to about **0.94 °F RMS** across the load range. Known limits:
 
-- **Wet-bulb sensitivity is under-modeled** — across the wet-bulb range the modeled tower effectiveness moves less than the field data shows, so the tower can read several °F optimistic at the low-wet-bulb corner. Not yet reliable for absolute free-cooling or economizer-hour predictions; a tower-physics revision is planned.
-- **Loop load is treated as equal to tower heat rejection** — the compressor heat-of-rejection uplift (~×1.2) isn't applied yet, so rejection/tower duty read conservative relative to true condenser load.
-- **Differential pressure is modeled as a function of flow** — correct for this constant-flow building (no per-unit two-way valves), but it can't reproduce a measured DP-reset schedule.
-- **The building-load model** is anchored to a limited set of field trends and is best treated as approximate, especially on mild days.
-- **Quasi-steady thermal response** — the building and return nodes carry no heat capacitance, so a sudden load step gives a slightly sharp return-temperature response. Steady-state behavior is the trustworthy part.
+- **Cold-weather behavior is unvalidated** — there's no sub-freezing field data yet, so the winter freeze / bypass physics and fan-speed sensitivity are provisional.
+- **Loop load is treated as equal to tower heat rejection** — the compressor heat-of-rejection uplift (~×1.2) isn't applied yet, so duty reads slightly conservative.
+- **Differential pressure is modeled as a function of flow** — correct for this constant-flow building, but it can't reproduce a measured DP-reset schedule.
+- **The building-load model is a warm-season fit** — winter / heating-season loop load is modeled, not measured.
+- **Quasi-steady thermal response** — steady-state behavior is the trustworthy part; transient accuracy isn't characterized.
 
-## Run it
+## How to use it
 
-It's a single static file.
-
-- **Locally:** open `index.html` in any modern browser. That's it.
-- **GitHub Pages:** Settings → Pages → deploy from branch, root folder. It serves directly (the file is named `index.html` for this reason).
-
-No server, no build step, no install.
-
-## Adapting to another site
-
-The model is generic in form and specific in numbers. To point it at a different plant, edit the clearly-marked constants near the top of the `<script>` block in `index.html`:
-
-- **`CFG`** — the live model state and all tunable constants in one object:
-  - *Sequence / setpoints:* CWS setpoint, low-limit, bypass hold/close points, deadband, DP setpoint, pump minimum speed, GPM floor, freeze trip, OAT lockout.
-  - *Tower:* `epsMax` (design effectiveness), `airCap` (air-side heat-rejection limit), fan exponents, `apprMin` (minimum approach), `minLeave` (cold-weather leaving-water floor).
-  - *Hydraulics:* `kser` / `kcell` (series and per-cell resistances), `static` (open-tower lift), `kdp` (DP-curve coefficient), `cvByp` (bypass valve Cv).
-  - *Building load:* `base24` (24/7 IT/CRAC floor), `occBase` (occupied AHU floor), `ahuPeak` (hot-day AHU max), `hpHeat` (heat-pump draw), and the economizer OAT/enthalpy limits.
-- **`V` / `BASIN_GAL` / `FILL_GPM`** — loop transport volumes and basin geometry.
-- **`FAN_KW`**, the pump BEP and efficiency curve, and the head-curve coefficients — equipment nameplate.
-- **`SITE`** / the *Set location* control — the live-weather station, chosen at runtime.
-
-To recalibrate against your own BAS: a couple of operating points at different pump speeds will anchor the hydraulics, and a fixed-fan wet-bulb sweep will anchor the tower. The inline comments document what each constant was fit to and which trend points pin it.
-
-One thing that is **not** just a constant: the SVG process schematic and the sensor-tag positions are hand-laid for this plant's topology (two cells, this bypass arrangement, lead/standby pumps). If your plant differs — different cell count, header layout, or pump configuration — you'll edit the SVG and the render bindings, not just the numbers.
+- **Run it** — open `index.html` in any modern browser. To serve it live, use GitHub Pages (Settings → Pages → deploy from branch, root folder).
+- **Drive it** — press **Pause/Run** to let the sequence operate the plant, or take an actuator to **HAND** to override it. Watch the faceplate and the **power draw** figure to weigh the energy cost of staging and setpoint choices.
+- **Adapt it to another plant** — the model is generic in form and specific in numbers. Every site constant lives in the `CFG` object (plus a few nearby equipment constants) near the top of the `<script>` block, with inline notes on what each one is. Re-fit the hydraulics from a couple of pump-speed points and the tower from a fan / wet-bulb sweep. The SVG schematic is hand-laid for a two-cell layout, so a different plant topology means editing the SVG and its render bindings, not just the numbers.
 
 ## Stack
 
-Vanilla HTML / CSS / JavaScript. No frameworks, no build, no dependencies — a single file you can read top to bottom.
+Vanilla HTML / CSS / JavaScript — no frameworks, no build, no dependencies. A single file you can read top to bottom.
 
 ## License
 
@@ -73,4 +50,4 @@ MIT — see [LICENSE](LICENSE).
 
 ## Disclaimer
 
-This is an engineering and teaching tool. All outputs are model estimates and carry the limitations described above; don't use it as the basis for operating a real plant without independent engineering verification.
+An engineering and teaching tool. All outputs are model estimates and carry the limitations above; verify independently before acting on a real plant.
