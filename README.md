@@ -38,7 +38,7 @@ It's a model, best used for **relative** comparisons (this staging vs. that one,
 
 - **Run it** — open `index.html` in any modern browser. To serve it live, use GitHub Pages (Settings → Pages → deploy from branch, root folder).
 - **Drive it** — press **Pause/Run** to let the sequence operate the plant, or take an actuator to **HAND** to override it. Watch the faceplate and the **power draw** figure to weigh the energy cost of staging and setpoint choices.
-- **Adapt it to another plant** — the model is generic in form and specific in numbers. Every site constant lives in the `CFG` object (plus a few nearby equipment constants) near the top of the `<script>` block, with inline notes on what each one is. Re-fit the hydraulics from a couple of pump-speed points and the tower from a fan / wet-bulb sweep. The SVG schematic is hand-laid for a two-cell layout, so a different plant topology means editing the SVG and its render bindings, not just the numbers.
+- **Adapt it to another plant** — the model is generic in form and specific in numbers. Most site constants live in the `CFG` object; a few engine constants (pump curve, basin volume, fan kW, alarm thresholds) sit nearby — all near the top of the `<script>` block, with inline notes on what each one is. Re-fit the hydraulics from a couple of pump-speed points and the tower from a fan / wet-bulb sweep. The SVG schematic is hand-laid for a two-cell layout, so a different plant topology means editing the SVG and its render bindings, not just the numbers.
 
 ## Stack
 
@@ -50,4 +50,4 @@ MIT — see [LICENSE](LICENSE).
 
 ## Disclaimer
 
-An engineering and teaching tool. All outputs are model estimates and carry the limitations above; verify independently before acting on a real plant.
+An engineering and teaching tool. All outputs are model estimates and carry the limitations above; verify independently before acting on a real plant. The build is de-identified — no site, owner, tenant, or equipment-make information — while keeping the real equipment profile for realism.

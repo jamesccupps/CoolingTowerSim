@@ -141,25 +141,25 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
   <button id="btn_run" onclick="toggleRun()">Pause</button>
   <button onclick="doReset()">Reset</button>
   <span class="grow"></span>
-  <span id="flag_cav" class="flagbadge">CAVITATION</span>
-  <span id="flag_flow" class="flagbadge">LOW FLOW</span>
-  <span id="flag_low" class="flagbadge">LOW CWS</span>
-  <span id="flag_frz" class="flagbadge">FREEZE</span>
-  <span id="flag_frzrisk" class="flagbadge">FREEZE RISK</span>
-  <span id="flag_oat" class="flagbadge">OAT LOCKOUT</span>
-  <span id="flag_hp" class="flagbadge">OVER HP</span>
-  <span id="flag_air" class="flagbadge">AIR INGEST</span>
-  <span id="flag_ovf" class="flagbadge">BASIN OVERFLOW</span>
-  <span id="flag_dead" class="flagbadge">PUMP DEADHEAD</span>
-  <span id="flag_basin" class="flagbadge">BASIN LOW</span>
-  <span id="flag_dtclamp" class="flagbadge">&Delta;T CLAMPED</span>
+  <span id="flag_cav" class="flagbadge" role="alert">LOW NPSHa</span>
+  <span id="flag_flow" class="flagbadge" role="alert">LOW FLOW</span>
+  <span id="flag_low" class="flagbadge" role="alert">LOW CWS</span>
+  <span id="flag_frz" class="flagbadge" role="alert">FREEZE</span>
+  <span id="flag_frzrisk" class="flagbadge" role="alert">FREEZE RISK</span>
+  <span id="flag_oat" class="flagbadge" role="alert">OAT LOCKOUT</span>
+  <span id="flag_hp" class="flagbadge" role="alert">OVER HP</span>
+  <span id="flag_air" class="flagbadge" role="alert">AIR INGEST</span>
+  <span id="flag_ovf" class="flagbadge" role="alert">BASIN OVERFLOW</span>
+  <span id="flag_dead" class="flagbadge" role="alert">PUMP DEADHEAD</span>
+  <span id="flag_basin" class="flagbadge" role="alert">BASIN LOW</span>
+  <span id="flag_dtclamp" class="flagbadge" role="alert">&Delta;T CLAMPED</span>
   <span id="t_kw" style="font-size:12px;color:var(--text2);margin-right:6px" title="Live electrical power: tower fans (kW) + pump (kW) — both motor+VFD electrical input. Use it to compare staging/setpoint choices.">— kW</span>
   <span style="font-size:12.5px;color:var(--text2)" title="Simulation time acceleration (sim-minutes advanced per real second). Low = watch transients unfold; high = settle fast. The pipe-flow animation reflects the real flow rate, not this.">speed</span>
   <input type="range" id="sl_speed" min="0.1" max="6" step="0.1" value="2" style="width:90px" title="Simulation time acceleration — sim-minutes per real second. Low = watch transients unfold in real time; high = settle fast. The pipe-flow animation always shows the real flow rate, independent of this." oninput="speed=+this.value;var r=document.getElementById('speedrate');if(r)r.textContent=Math.round(speed*10)+' min/s';">
   <span id="speedrate" style="font-size:11px;color:var(--text3);min-width:44px">20 min/s</span>
 </div>
 
-<div class="kpibar" role="group" aria-label="Live plant readouts">
+<div class="kpibar" role="group" aria-live="polite" aria-label="Live plant readouts">
   <div class="kpi"><div class="k-l">Supply &middot; CWS</div><div class="k-v" id="k_cws">—</div></div>
   <div class="kpi"><div class="k-l">Return &middot; CWR</div><div class="k-v" id="k_cwr">—</div></div>
   <div class="kpi"><div class="k-l">Approach to WB</div><div class="k-v" id="k_appr">—</div></div>
@@ -419,12 +419,12 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
 </div>
 
 <svg width="100%" viewBox="0 0 680 70" role="img" style="margin-bottom:2px">
-  <title>Supply temperature trend</title><desc>CWS over time vs setpoint and the 60 degree low limit.</desc>
+  <title>Supply temperature trend</title><desc>CWS over time vs setpoint and the 50 degree low limit.</desc>
   <line id="spark_sp" x1="10" y1="24" x2="670" y2="24" stroke="#1d9e75" stroke-width="0.5" stroke-dasharray="4 4"/>
   <line id="spark_low" x1="10" y1="46" x2="670" y2="46" stroke="#c0392b" stroke-width="0.5" stroke-dasharray="4 4"/>
   <polyline id="spark_line" points="" fill="none" stroke="#378add" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
 </svg>
-<div style="font-size:12px;color:var(--text2);margin-bottom:12px">CWS trend (blue) vs setpoint (green) and the 60 &deg;F WSHP low limit (red)</div>
+<div style="font-size:12px;color:var(--text2);margin-bottom:12px">CWS trend (blue) vs setpoint (green) and the 50 &deg;F WSHP low limit (red)</div>
 
 <details open><summary>Manual control &amp; mode <span class="hint">HAND overrides the sequence — incl. safety</span></summary>
 <div class="body">
@@ -444,7 +444,7 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
     <button id="btn_lt2" onclick="setLeadTower('CT-2')" title="CT-2 fan leads.">CT-2</button>
   </div>
   <div id="sec_manual"></div>
-  <div class="note">To replicate the live plant (Pump 1 + Tower 2, single cell): set <b>Single</b> feeding <b>CT-2</b>, lead pump CTP-1, Pump &rarr; <b>HAND 60%</b>, CT-2 fan &rarr; <b>HAND 50 Hz</b> &rarr; expect &asymp;1,215 gpm, 8.2 psi (matches the BAS to ~1%). A second measured point: 62% / 58 Hz &asymp;1,270 gpm / 8.8 psi, CWS&asymp;71&deg;F.</div>
+  <div class="note">To replicate the live plant (Pump 1 + Tower 2, single cell): set <b>Single</b> feeding <b>CT-2</b>, lead pump CTP-1, Pump &rarr; <b>HAND 60%</b>, CT-2 fan &rarr; <b>HAND 50 Hz</b> &rarr; &asymp;1,215 gpm, 8.2 psi. These are the field <b>calibration anchors</b> the hydraulics were fit to (a second field point: 62% / 58 Hz &asymp;1,270 gpm / 8.8 psi, CWS&asymp;71&deg;F).</div>
 </div></details>
 
 <details><summary>Manual valves &amp; isolation <span class="hint">basin level, air-ingestion, dead-head, overflow</span></summary>
@@ -484,9 +484,12 @@ var V={sup:1150,ret:1100,bldg:1050,basin:750};   // loop transport volumes (gal 
 var H0=163.4, AC=(163.4-135.5)/(1850*1850);
 var FAN_KW=25*0.746/(0.92*0.97);   // 25 HP tower fan -> electrical kW at full speed (shaft HP / motor 0.92 / VFD 0.97).
 
+// De-identified public build: no site, owner, tenant, or equipment-make identifiers. The aggregate
+// equipment profile and operating points below are real, kept intentionally for realism.
 var CFG={
   sp:75, lowLim:50, bypHold:65, bypClose:70, band:2, timer:10, dpSP:8.5,   // CWS setpoint / WSHP low-limit (below it: fans off + bypass) / bypass hold + close / stage band / stage timer / DP setpoint.
   pumpMin:0.50, gpmFloor:700, freeze:38, oatLock:25, minCellFlow:459,  // pump min speed / GPM floor / basin freeze trip / single-cell OAT lockout / min per-cell tower flow. minCellFlow ~= 50% of certified per-cell design flow: below it a wetted crossflow cell in subfreezing air can wet unevenly and ice (FREEZE RISK) even with the bulk loop near the low-limit -- a guardrail against diverting too much flow off the tower (refs: ASHRAE 90.1; reduce CELLS, not flow-per-cell).
+  npshaTrip:22.9, lowFlowTrip:536.7,          // alarm trips: suction NPSHa floor (psi) for the LOW NPSHa flag; loop-flow floor (gpm) for the LOW FLOW flag
   enLag:true, enBypass:true, enFreeze:true, enLowLimit:true, balancedFans:false,  // balancedFans: dual-mode fans run together at equal speed (parallel) instead of split-range lead/lag
   epsMax:0.588, fanExp:0.6, wlExp:1.05, wlRef:846, fanFloor:0.05, apprMin:3.5, airCap:51, fanFixed:0.12, minLeave:43,  // tower model (e-NTU): epsMax = design effectiveness; fanExp = NTU-vs-fan-speed exponent; wlExp/wlRef = overload derate above per-cell nominal flow; fanFloor = natural-draft airflow (fan off); apprMin = min approach to wet-bulb; airCap = air-side (Merkel) reject limit (tons per Btu/lb at full fan); fanFixed = per-fan fixed electrical loss, making fan kW = FAN_KW*(fanFixed+(1-fanFixed)*speed^3) so two fans carry two fixed costs (why lead/lag can beat balanced at low load); minLeave = cold-weather leaving-water floor (ice avoidance).
   kser:1.95e-5, kcell:2.0e-6, static:15, kdp:8.2/(1215*1215), cvByp:900,   // hydraulics: kser = building-loop resistance, kcell = per-cell tower resistance (both solved against the pump curve for flow); static = open-tower lift (~15 ft, basin up to the tower distribution; the building loop itself is a recovered siphon, but the open tower at the top breaks it); kdp = DP-vs-flow coefficient; cvByp = warming-bypass Cv. kser/kdp fit to the field pump-speed sweep; the pump deadheads below ~30% where shutoff head drops under the open-tower lift.
@@ -499,7 +502,7 @@ var CFG={
   occBase:270, ahuPeak:450, ahuMin:30,       // occupied AHU floor (internal-gain dominated, ~flat vs OAT) / hot-day max / economizing residual. Fit to weekday field trends.
   hpHeat:55,                                 // WSHP heat drawn FROM the loop at design heating (diversified peak) -- can drive the loop net-negative in deep cold. Winter value is modeled, pending a cold-spell trend.
   balOAT:55, designOAT:88, htgOAT:10,        // cooling balance pt / design cooling OAT / design heating OAT
-  econOAT:60, econEnth:19,                    // AHU air-side economizer: free-cool when OAT < 60F AND enthalpy < 19 Btu/lb
+  econOAT:60, econEnth:19, econBand:3,        // AHU air-side economizer: free-cool when OAT < 60F AND enthalpy < 19 Btu/lb; econBand = OAT blend width (F) across the changeover (no instantaneous cliff)
   todMin:840, weekday:true                    // sim clock: minutes since midnight (840=14:00); weekday = M-F (AHUs scheduled 05:00-18:00, staggered)
 };
 var OV={pump:false, fan1:false, fan2:false, byp:false};
@@ -573,14 +576,14 @@ function towerLeave(tin,qc,s){
   // = WARMER of the water-side (e-NTU) result and this air-side floor -> pins CWS and widens the approach
   // as WB drops (matches the low-fan field runs). Bisection for the floor.
   var hWB=enthSat(CFG.wb), lo=CFG.wb+0.3, hi=tin;
-  for(var it=0;it<14;it++){ var ta=(lo+hi)*0.5; if(qc*(tin-ta)/24 - CFG.airCap*G*(enthSat(ta)-hWB) > 0) lo=ta; else hi=ta; }
+  for(var it=0;it<14;it++){ var ta=(lo+hi)*0.5; if(qc*(tin-ta)/24 - CFG.airCap*G*(enthSat(ta)-hWB) > 0) lo=ta; else hi=ta; }   // fixed 14-iteration bisection: converges well within display precision for this bracket
   var taStar=(lo+hi)*0.5; if(taStar>tout)tout=taStar;
   if(tout<CFG.minLeave)tout=CFG.minLeave;   // COLD-WEATHER FLOOR: the tower can't drive flowing water below ~freezing/ice-avoidance min
   return {tout:tout,tons:qc*8.34*(tin-tout)/200};
 }
-function npsha(q){return 33.9-0-8.0e-7*q*q-1.0;}   // both pumps flooded at basin level: no lift
+function npsha(q){return 33.9-8.0e-7*q*q-1.0;}   // both pumps flooded at basin level: no lift
 function nodeUpdate(T,Tin,vol,q){if(q<=1)return T;var tau=vol/q;var r=DT/tau;return (T+r*Tin)/(1+r);}
-function delayed(h,vol,q){if(q<=1)return h[h.length-1];var st=Math.max(1,Math.min(h.length-1,Math.round((vol/q)/DT)));return h[h.length-st];}
+function delayed(h,vol,q){if(q<=1)return h[h.length-1];var st=Math.max(1,Math.min(h.length-1,Math.round((vol/q)/DT)));return h[h.length-st];}   // transport delay = vol/q, capped at the history length (~40 min); the cap engages only at non-operational low flow
 function pushHist(h,x){h.push(x);if(h.length>400)h.shift();}
 
 // ---- which physical tower cell(s) are online, and each cell's fan speed ----
@@ -603,13 +606,16 @@ function occupancy(){                                          // 0..1 occupied 
   return 1;
 }
 function buildingLoad(oat,wb){
-  var econ=(oat<CFG.econOAT && enthSat(wb)<CFG.econEnth);       // AHU air-side economizer engaged
+  var enthOK=enthSat(wb)<CFG.econEnth;                          // economizer permitted only when the air is also dry enough
+  var ef=enthOK?Math.max(0,Math.min(1,(CFG.econOAT-oat)/CFG.econBand)):0;       // economizer fraction: 0->1 as OAT falls through econOAT over an econBand-wide blend (no changeover cliff)
+  var econ=ef>0.5;                                              // "economizing" for display once mostly engaged
   var cd=Math.max(0,Math.min(1,(oat-CFG.balOAT)/(CFG.designOAT-CFG.balOAT)));   // cooling-demand fraction (hot-day weather term)
   var hd=Math.max(0,Math.min(1,(CFG.balOAT-oat)/(CFG.balOAT-CFG.htgOAT)));      // heating-demand fraction
   var occ=occupancy();
   // occupied AHU compressor load: a floor from internal gains (stays high even on cool mornings) that the
-  // weather term only exceeds on hot days; economizing (cool+dry) drops it to the interior residual.
-  var ahuRaw=econ?CFG.ahuMin:Math.max(CFG.occBase,CFG.ahuPeak*cd);
+  // weather term only exceeds on hot days; economizing (cool+dry) blends it down to the interior residual.
+  var mech=Math.max(CFG.occBase,CFG.ahuPeak*cd);               // mechanical-cooling AHU load (no economizer)
+  var ahuRaw=mech+(CFG.ahuMin-mech)*ef;                         // blend mechanical -> economizing residual across the changeover
   var ahu=ahuRaw*occ;                                          // gated by the M-F 05:00-18:00 schedule
   var hp=-CFG.hpHeat*hd;                                       // WSHPs pull heat FROM the loop when cold
   return {tons:CFG.base24+ahu+hp, econ:econ, occ:occ, ahu:ahu, hp:hp};
@@ -627,7 +633,7 @@ function step(){
   }
   var cells=CFG.mode==='dual'?2:1;
   var basinMin=99; for(var bm=0;bm<2;bm++){if(cellActive(bm))basinMin=Math.min(basinMin,S.basin[bm]);} if(basinMin===99)basinMin=S.Tcwr;
-  C.fan.kp=CFG.fanKp; C.fan.ki=CFG.fanKi;
+  C.fan.kp=CFG.fanKp; C.fan.ki=CFG.fanKi;   // PID gains live-refresh from CFG each step (sliders); the constructor values are just initial defaults
   C.byp.kp=CFG.bypKp; C.byp.ki=CFG.bypKi;
   C.dp.kp=CFG.dpKp;   C.dp.ki=CFG.dpKi;
 
@@ -644,7 +650,7 @@ function step(){
   var flowOk=!S.hyd||S.hyd.q>50;
   var perm=C.pumpSpeed>0&&flowOk;
   var freeze=CFG.enFreeze&&basinMin<CFG.freeze;
-  var low=CFG.enLowLimit&&S.Tcws<CFG.lowLim;     // 60F WSHP low-limit: own enable, separate from freeze
+  var low=CFG.enLowLimit&&S.Tcws<CFG.lowLim;     // WSHP low-limit (CFG.lowLim, default 50F): own enable, separate from freeze
   C.oatLocked=false;
 
   // ---- FANS + BYPASS (AUTO) ----
@@ -823,7 +829,7 @@ function render(){
   setTxt('t_fm2', shut?'—':(a1?gp(qtw/nAct):'0'));
   S_('dp_dot').setAttribute('stroke', Math.abs((S.hyd?S.hyd.dp:0)-CFG.dpSP)<0.4?'#639922':'#ba7517');
   // flags
-  var cav=(S.npsha<22.9&&S.q>1), lf=(S.q<536.7&&S.q>1), lo=(CFG.enLowLimit&&S.Tcws<CFG.lowLim&&S.q>1);
+  var cav=(S.npsha<CFG.npshaTrip&&S.q>1), lf=(S.q<CFG.lowFlowTrip&&S.q>1), lo=(CFG.enLowLimit&&S.Tcws<CFG.lowLim&&S.q>1);  // 'cav' = LOW NPSHa: suction starvation (from air ingestion / loss of prime in this model, not flow-induced cavitation in the operating band)
   var frz=(CFG.enFreeze&&Math.min(a0?S.basin[0]:99, a1?S.basin[1]:99)<CFG.freeze), hp=(S.bhp>75);
   var cflow=(S.hyd&&nAct>0)?S.hyd.qt/nAct:0, frzrisk=(CFG.wb<32&&S.q>1&&cflow<CFG.minCellFlow);  // subfreezing WB + tower flow under ~50% design/cell -> uneven fill wetting freeze risk (the bypass-diverts-too-much case)
   flag('flag_cav',cav); flag('flag_flow',lf); flag('flag_low',lo); flag('flag_frz',frz); flag('flag_frzrisk',frzrisk);
