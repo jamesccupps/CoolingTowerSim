@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Condenser-Water Loop — Control Bench (v4)</title>
+<title>Condenser-Water Loop — Control Bench (v5)</title>
 <style>
 :root{
   /* DARK MODE ALWAYS — the dark palette is applied unconditionally (no prefers-color-scheme branch),
@@ -113,7 +113,7 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
   <h4>What this is</h4>
   <p>A transient, physics-based simulation of the building’s condenser-water loop — a <b>control and efficiency test bench</b> for rehearsing the cooling-tower sequence, trying setpoints, and weighing pump and fan staging against energy use. It is not a data historian. The same calibrated engine runs here and in the headless model used for analysis.</p>
   <h4>The real system it represents</h4>
-  <p>A <b>~560-ton open evaporative tower</b> — two crossflow cells (<b>CT-1 / CT-2</b>), 564 nominal tons, with (2) 25 HP induced-draft fans — rejects building heat to outdoor air. Two <b>75 HP</b> vertical-inline pumps (<b>CTP-1 / CTP-2</b>, lead/standby, one running at a time) circulate condenser water to the building’s water-source heat pumps, AHU compressors, and computer-room cooling. One cell runs at a time, so single-cell operation is a first-class mode here. <b>Note:</b> the in-service tower is currently airflow-limited and under-performs its nameplate, so the model is calibrated to the tower <i>as it runs today</i>.</p>
+  <p>An <b>open evaporative tower</b> — two crossflow cells (<b>CT-1 / CT-2</b>), 564 nominal tons, with (2) 25 HP induced-draft fans — rejects building heat to outdoor air. Two <b>75 HP</b> vertical-inline pumps (<b>CTP-1 / CTP-2</b>, one running at a time, swapped automatically once a week) circulate condenser water to the building’s water-source heat pumps, AHU compressors, and computer-room cooling. A recent renovation separated the basins and re-filled the cells; one cell was out for several weeks of the fit period, which is why single-cell operation stays a first-class mode here.</p>
   <h4>What’s under the hood</h4>
   <div class="specrow">
     <span class="chip">pump affinity laws + mfr head curve</span>
@@ -121,19 +121,22 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
     <span class="chip">ε-NTU + air-side Merkel tower</span>
     <span class="chip">wet-bulb enthalpy driving force</span>
     <span class="chip">first-order thermal transport</span>
-    <span class="chip">documented control sequence</span>
+    <span class="chip">basin water balance</span>
+    <span class="chip">AHU-stage building load</span>
+    <span class="chip">the running controller program (design SOO selectable)</span>
   </div>
-  <p>The bench is modeled on the <b>actual installed equipment</b>, not just automation data. The pump head curve is the manufacturer submittal; the cooling-tower capacity, fan power, and basin volume are the tower nameplate and engineering data; the condenser-water piping is the real Sch 40 runs — sizes and lengths taken off the building prints; and the setpoints and control logic are the building’s own sequence of operations. The BAS field trends then calibrate the loop resistances and validate the result against measured flow, pressure, and temperature — but the equipment skeleton is the real plant.</p>
-  <p>Hydraulic resistances, the pump differential-pressure curve, the loop transport volumes, and the tower air-side cap were fit to BAS field trends (pump DP, loop flow, supply and return temperature, wet-bulb). The tower’s peak effectiveness is <b>anchored to the tower nameplate (ε<sub>max</sub> = 0.588)</b> and held there pending better data — it is not fit to field. Against a controlled pump-speed sweep the model tracks measured loop flow within ±1.6 % and differential pressure within ±2.4 %.</p>
+  <p>The bench is modeled on the <b>actual installed equipment</b>, not just automation data. The pump head curve is the manufacturer submittal; the cooling-tower capacity, fan power, and basin volume are the tower nameplate and engineering data; the condenser-water piping is the real Sch 40 runs — sizes and lengths taken off the building prints; and the control logic is the program running on the tower controller, with the building’s documented sequence of operations selectable beside it. The BAS field trends then calibrate the loop resistances and validate the result against measured flow, pressure, and temperature — but the equipment skeleton is the real plant.</p>
+  <p>Everything was re-fit to a late-summer-to-fall season of 2-minute BAS trends (both pumps, one cell and two, bypass shut and open, the first winter-mode night) with an on-site weather station, and is scored by replaying the model’s own engine through every poll. <b>Hydraulics:</b> both cells at 60.5 % pump give ≈975 gpm at ≈9.4 psi; the replayed flow is within −9 gpm on average (RMS 29) and pump DP within 0.35 psi RMS. Since late summer the loop has run about 1.9× the resistance fitted earlier in the year, drifting about ±8 % with load and weather. <b>Tower:</b> fed the measured inlet, flow, fan and wet bulb, each cell’s leaving water is within +0.12 °F on average (RMS 0.74 °F, ~52,000 steady polls); at the manufacturer’s certified selection (918 gpm per cell, 74 °F wet bulb) it leaves 85.5 °F against the certified ~85 °F. <b>Whole plant:</b> with the fans, pump and bypass forced to what was measured, supply runs 0.8 °F cold on average (RMS 2.9 °F, the loop amplifying small tower errors at a ~1 °F range); with the controller program running everything in AUTO on the real setpoints, 0.5 °F cold (RMS 2.4 °F), pump speed within 0.9 % RMS, and about as many makeup fills as the real plant (20 vs 20 a day). <b>Building load</b> is fit to the air handlers’ compressor stages (34 t RMS, no bias), and the <b>basins</b> to the levels, fills, drawdowns and two loss-of-flow events. <b>Hold-out:</b> on three days after the fit, data it never saw, flow stayed within +4 gpm (RMS 12), the tower alone within −0.1 °F (RMS 0.45 °F) and the makeup fills matched (17 a day); with the fans off at ~50 t the whole loop ran 2 °F cold, which at that load is only ~2.6 t of heat.</p>
   <h4>How to drive it</h4>
   <p>Press <b>Pause/Run</b> and let the sequence operate the plant, or take any actuator to <b>HAND</b> to override it (including over safeties). Watch the faceplate and the supply-temperature trend; use the <b>power draw</b> figure to weigh the energy cost of staging and setpoint choices.</p>
   <h4 style="color:var(--warn-tx)">Known limitations — read before drawing conclusions</h4>
   <ul class="limit">
-    <li><b>Cold-weather behavior is unvalidated.</b> In summer, fed true (airport) wet-bulb, the tower reproduces measured supply temperature to <b>~0.94 °F RMS across the load range</b>. But there is no sub-freezing field data yet, so the winter freeze/bypass physics and fan-speed sensitivity are provisional — don't rely on absolute winter or free-cooling-hour numbers.</li>
-    <li><b>Loop load is treated as equal to tower heat rejection.</b> The compressor heat-of-rejection uplift (~×1.2) is not applied yet, so rejection and tower duty read conservative relative to the true condenser load.</li>
-    <li><b>The differential-pressure loop is modeled as a function of flow.</b> That is appropriate for this constant-flow building (no per-unit two-way valves — the loads are always flowing), but it cannot reproduce a measured DP-reset schedule.</li>
-    <li><b>The building-load model is a warm-season fit.</b> The occupied-load floor is calibrated against weekday field trends; winter/heating-season loop load is modeled, not measured.</li>
-    <li><b>Thermal response is quasi-steady.</b> Steady-state supply temperature tracks the field to about 0.94 °F RMS. The building and return nodes carry no heat capacitance, so a sudden load step gives a slightly sharp return-temperature response; transient accuracy is not yet characterized. Steady-state behavior is the trustworthy part.</li>
+    <li><b>Cold weather is extrapolated.</b> The fit covers wet bulbs from the 40s to the 70s and the first winter-mode night (down to ~35 °F). There's no sub-freezing data, so the fans-off free cooling, the bypass in deep cold, freeze and the heat pumps' winter draw are provisional until a cold-spell trend exists.</li>
+    <li><b>The tower is weak below ~400 gpm per cell.</b> It's fit on 460–1,000 gpm per cell. In two loss-of-flow events (200–400 gpm, fans high) the real cell still cooled 90–97 °F water to ~75 °F, and the model rejects only 40–70 % of that heat, so supply runs 10–12 °F warm there. The same regime covers a wide-open bypass.</li>
+    <li><b>Basin levels:</b> the fill valve's stroke, the level sensor's lag and the 0.6–1.35″ day-to-day drift in CT-2's offset aren't modeled. With the bypass open the real basins sit ~0.6″ higher than the model and fill less often.</li>
+    <li><b>Loop resistance is fixed.</b> The 3rd-floor DP is a fixed function of flow, which suits this constant-flow building (no two-way valves at the loads), but the measured resistance drifts about ±8 % with load and weather (higher at light load) and the model doesn't follow it.</li>
+    <li><b>The building-load model is a late-summer and fall fit.</b> Load here is heat on the loop, compressor heat included: building mode is fit to measured loop heat (flow × range), so no ×1.2 goes on top. Fit to August–October (air-handler compressor stages, on-site weather), it reproduces the measured load to 34 t RMS per poll and 20 t on daily means, with no bias. The rest is day to day: Mondays run about two stages high, and units fail. It has seen outdoor enthalpy from 14 to 40 Btu/lb; hotter days follow the saturation toward the 28 stages available (~360 t at the certified 74 °F wet bulb). The heat-pump heating side, which matters in winter, comes from fall nights down to 37 °F and is extrapolated below that. It under-predicts warm, dry, sunny afternoons when the AHUs are locked out by dry bulb at low enthalpy (one hold-out afternoon ran 12.7 stages against 6.1 modeled, ~60 t): below ~22 Btu/lb the locked-out curve drops too low.</li>
+    <li><b>Thermal response is quasi-steady.</b> The building and return nodes carry no heat capacitance, so a sudden load step gives a slightly sharp return-temperature response. Transient accuracy hasn't been scored on its own; read step responses as indicative.</li>
   </ul>
 </div></details>
 
@@ -315,13 +318,15 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
   <line x1="46.6" y1="149.6" x2="178.6" y2="149.6" class="equip" stroke-width="1.5"/>
   <g class="faint" stroke-width="1"><line x1="66.4" y1="56.3" x2="66.4" y2="146.1"/><line x1="89.3" y1="56.3" x2="89.3" y2="146.1"/><line x1="112.2" y1="56.3" x2="112.2" y2="146.1"/><line x1="135.1" y1="56.3" x2="135.1" y2="146.1"/><line x1="158.0" y1="56.3" x2="158.0" y2="146.1"/></g>
   <rect id="basin1" x="47.5" y="150.5" width="130.2" height="55.4" fill="#1d9e75"/>
-  <rect x="47.5" y="150.5" width="130.2" height="55.4" fill="url(#waterSheen)" pointer-events="none"/>
+  <rect id="basin1s" x="47.5" y="150.5" width="130.2" height="55.4" fill="url(#waterSheen)" pointer-events="none"/>
+  <line x1="47.5" y1="155.3" x2="177.7" y2="155.3" stroke="rgba(255,255,255,0.32)" stroke-width="0.8" stroke-dasharray="3 3" pointer-events="none"><title>Overflow, 21″</title></line>
   <rect class="equip" x="249.0" y="30.8" width="132.0" height="176.0" stroke-width="2"/>
   <line x1="249.0" y1="52.8" x2="381.0" y2="52.8" class="equip" stroke-width="1.5"/>
   <line x1="249.0" y1="149.6" x2="381.0" y2="149.6" class="equip" stroke-width="1.5"/>
   <g class="faint" stroke-width="1"><line x1="268.8" y1="56.3" x2="268.8" y2="146.1"/><line x1="291.7" y1="56.3" x2="291.7" y2="146.1"/><line x1="314.6" y1="56.3" x2="314.6" y2="146.1"/><line x1="337.5" y1="56.3" x2="337.5" y2="146.1"/><line x1="360.4" y1="56.3" x2="360.4" y2="146.1"/></g>
   <rect id="basin2" x="249.9" y="150.5" width="130.2" height="55.4" fill="#1d9e75"/>
-  <rect x="249.9" y="150.5" width="130.2" height="55.4" fill="url(#waterSheen)" pointer-events="none"/>
+  <rect id="basin2s" x="249.9" y="150.5" width="130.2" height="55.4" fill="url(#waterSheen)" pointer-events="none"/>
+  <line x1="249.9" y1="155.3" x2="380.1" y2="155.3" stroke="rgba(255,255,255,0.32)" stroke-width="0.8" stroke-dasharray="3 3" pointer-events="none"><title>Overflow, 21″</title></line>
   <text class="tag" x="112.6" y="103.4" text-anchor="middle" font-size="11">TOWER 1</text>
   <text class="tag" x="315.0" y="103.4" text-anchor="middle" font-size="11">TOWER 2</text>
   <!-- fans (group id + rotation centre preserved) -->
@@ -387,8 +392,8 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
   <g><rect x="333.9" y="0.8" width="38" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_f2" class="val" x="352.9" y="12.8" text-anchor="middle" font-size="10.5">—%</text></g>
   <g><rect x="1.2" y="137.2" width="46" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_basin1" class="val" x="24.2" y="149.2" text-anchor="middle" font-size="10.5">— °F</text></g>
   <g><rect x="381.4" y="137.2" width="46" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_basin2" class="val" x="404.4" y="149.2" text-anchor="middle" font-size="10.5">— °F</text></g>
-  <g><rect x="90.4" y="170.2" width="40" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_lvl1" class="val" x="110.4" y="182.2" text-anchor="middle" font-size="10.5">—%</text></g>
-  <g><rect x="295.0" y="170.2" width="40" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_lvl2" class="val" x="315.0" y="182.2" text-anchor="middle" font-size="10.5">—%</text></g>
+  <g><title>Cold-basin level (▲ = makeup filling)</title><rect x="84.4" y="170.2" width="52" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_lvl1" class="val" x="110.4" y="182.2" text-anchor="middle" font-size="10.5">—″</text></g>
+  <g><title>Cold-basin level (▲ = makeup filling)</title><rect x="289.0" y="170.2" width="52" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_lvl2" class="val" x="315.0" y="182.2" text-anchor="middle" font-size="10.5">—″</text></g>
   <g><rect x="210.6" y="337.4" width="54" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_fm1" class="val" x="237.6" y="349.4" text-anchor="middle" font-size="10.5">—</text></g>
   <g><rect x="248.8" y="365.1" width="48" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_cv1" class="val" x="272.8" y="377.1" text-anchor="middle" font-size="10.5">—</text></g>
   <g><rect x="428.4" y="337.4" width="54" height="16" rx="4" fill="#1c1a17" fill-opacity="0.78"/><text id="t_fm2" class="val" x="455.4" y="349.4" text-anchor="middle" font-size="10.5">—</text></g>
@@ -424,7 +429,7 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
   <line id="spark_low" x1="10" y1="46" x2="670" y2="46" stroke="#c0392b" stroke-width="0.5" stroke-dasharray="4 4"/>
   <polyline id="spark_line" points="" fill="none" stroke="#378add" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
 </svg>
-<div style="font-size:12px;color:var(--text2);margin-bottom:12px">CWS trend (blue) vs setpoint (green) and the 50 &deg;F WSHP low limit (red)</div>
+<div id="spark_cap" style="font-size:12px;color:var(--text2);margin-bottom:12px">Supply trend (blue) vs setpoint (green)</div>
 
 <details open><summary>Manual control &amp; mode <span class="hint">HAND overrides the sequence — incl. safety</span></summary>
 <div class="body">
@@ -439,21 +444,25 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
     <span style="margin-left:10px" title="Which pump runs (one at a time). The model treats both identically; the cross-connect butterfly isolates the standby.">Lead pump</span>
     <button id="btn_ctp1" onclick="setPump('CTP-1')" title="CTP-1 runs, CTP-2 standby.">CTP-1</button>
     <button id="btn_ctp2" onclick="setPump('CTP-2')" title="CTP-2 runs, CTP-1 standby.">CTP-2</button>
-    <span style="margin-left:10px" title="In Dual lead/lag, which cell's fan leads (ramps first). Manual fan buttons still map to the physical cell.">Lead tower</span>
+    <button id="btn_rot" class="tog" onclick="toggleRot()" title="Weekly alternation in the running program: the pumps swap every Tuesday at 10:00 with a ~75 s overlap and the DP loop held at 63 % for 130 s. Off = manual (the lead-pump buttons run the same swap).">Weekly swap</button>
+    <span id="lead_tower_grp"><span style="margin-left:10px" title="Design-SOO lead/lag: which cell's fan leads (ramps first). Manual fan buttons still map to the physical cell. The running program has no lead cell: one loop drives both fans.">Lead tower</span>
     <button id="btn_lt1" onclick="setLeadTower('CT-1')" title="CT-1 fan leads.">CT-1</button>
-    <button id="btn_lt2" onclick="setLeadTower('CT-2')" title="CT-2 fan leads.">CT-2</button>
+    <button id="btn_lt2" onclick="setLeadTower('CT-2')" title="CT-2 fan leads.">CT-2</button></span>
   </div>
   <div id="sec_manual"></div>
-  <div class="note">To replicate the live plant (Pump 1 + Tower 2, single cell): set <b>Single</b> feeding <b>CT-2</b>, lead pump CTP-1, Pump &rarr; <b>HAND 60%</b>, CT-2 fan &rarr; <b>HAND 50 Hz</b> &rarr; &asymp;1,215 gpm, 8.2 psi. These are the field <b>calibration anchors</b> the hydraulics were fit to (a second field point: 62% / 58 Hz &asymp;1,270 gpm / 8.8 psi, CWS&asymp;71&deg;F).</div>
+  <div class="note">To replicate the live plant (both cells): set <b>Dual</b>, Pump &rarr; <b>HAND 60.5%</b> &rarr; expect &asymp;975 gpm on the tower meters, &asymp;9.4 psi at the 3rd floor (the fall median). Earlier in the year one cell alone at 60% gave &asymp;1,230 gpm / 7.75 psi; the loop has run about 1.9&times; that resistance since late summer.</div>
 </div></details>
 
 <details><summary>Manual valves &amp; isolation <span class="hint">basin level, air-ingestion, dead-head, overflow</span></summary>
 <div class="body"><div id="sec_valves"></div>
-  <div class="note">Tower <b>return</b> = BAS control valve; tower <b>supply</b> = manual butterfly. Basins are separated; quick-fill is normally OFF (makeup is on the supply side after the pumps). Try dual mode &rarr; shut <b>CT-2 return</b> to 0% but leave <b>CT-2 supply</b> open: CT-2 basin drains &rarr; <b>AIR INGEST</b> + cavitation. Correct isolation = shut <b>both</b> CT-2 return and supply.</div>
+  <div class="note">Tower <b>return</b> = BAS control valve; tower <b>supply</b> = manual butterfly. The basins have no equalizer line, but their outlets tee together before the strainer, so while both supply butterflies are open the suction keeps them one pool: shut <b>CT-2 return</b> and CT-1's basin refills CT-2's through the tee (all the flow and heat go to CT-1). Shut <b>CT-2 supply</b> too and CT-2's basin is isolated. Quick-fill (straight to a basin) is normally OFF; the makeup goes into the pump discharge.</div>
 </div></details>
 
-<details><summary>Setpoints &amp; sequencing</summary>
+<details open><summary>Setpoints &amp; sequencing <span class="hint">the running program, or the documented design sequence</span></summary>
 <div class="body">
+  <div class="modebtns" id="sec_seq"></div>
+  <div class="grid" id="sec_prog"></div>
+  <div class="note" id="note_prog">As running on the tower controller. One PI loop on header supply drives <b>both</b> fans at the same speed; a running fan never drops below the minimum speed, so at light load it short-cycles (36&ndash;74 starts/day in the fall trends). The bypass holds supply at setpoint &minus; offset, capped at the max opening; in winter mode it also can't drop the towers' leaving water below the winter minimum. Pumps run on a DP cascade (3rd floor &rarr; header DP setpoint &rarr; speed) and swap Tuesdays 10:00. This program has <b>no</b> basin-freeze trip, WSHP low limit or pump speed floor &mdash; those are design-sequence items.</div>
   <div class="modebtns" id="sec_enables"></div>
   <div class="grid" id="sec_sp"></div>
 </div></details>
@@ -464,15 +473,20 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
 <details><summary>Hydraulics <span class="hint">resistances &amp; DP curve (field-calibrated)</span></summary>
 <div class="body"><div class="grid" id="sec_hyd"></div></div></details>
 
-<details><summary>PID gains <span class="hint">DP-PID retuned + directional anti-windup</span></summary>
-<div class="body"><div class="grid" id="sec_pid"></div></div></details>
+<details><summary>Water side <span class="hint">basin levels, makeup, evaporation, the header sensor</span></summary>
+<div class="body"><div class="grid" id="sec_water"></div>
+  <div class="note">Both cold basins draw through one suction tee, so they act as one pool: CT-2 rides ~1″ higher (its longer outlet run). The makeup joins the pump discharge and fills on CT-1's level (on below SP&minus;1&Prime;, off at SP), with level-fail timers forcing a top-up after 60&ndash;90 min off. Each cell's hot-water basin and fill hold ~0.34 gal per gpm, which drains back when the flow drops: a pump stop at today's flow lifts the basins ~3.5&Prime;, near the 21&Prime; overflow. Below ~11&Prime; the outlet pulls air and the tower flow collapses. Fit to the fall trends.</div>
+</div></details>
+
+<details><summary>PID gains <span class="hint">per sequence; directional anti-windup</span></summary>
+<div class="body"><div class="grid" id="sec_pid_prog"></div><div class="grid" id="sec_pid"></div></div></details>
 
 <details open><summary>Ambient &amp; load</summary>
 <div class="body"><div class="grid" id="sec_amb"></div></div></details>
 
-<details><summary>Building load model <span class="hint">economizer-gated, from the building HVAC inventory</span></summary>
+<details><summary>Building load model <span class="hint">compressor stages, fit to the Aug–Oct AHU trends</span></summary>
 <div class="body"><div class="grid" id="sec_bld"></div>
-  <div class="note">Active when <b>Load source = building</b>. Loop load = CRAC floor + AHU cooling (collapses to the residual when economizing below the OAT &amp; enthalpy limits) + heat pumps (+ cooling / &minus; heating). Hover any control for what it does. Magnitudes are from the building HVAC summary (15 AHUs ~604 t, ~31 WSHPs, CRAC/IT ~46 t) with assumed diversity &mdash; tune as real BACnet load data comes in.</div>
+  <div class="note">Active when <b>Load source = building</b>. Loop load = 24/7 base + heat per stage &times; compressor stages running &minus; heat-pump heating. On weekdays 05:00&ndash;18:00 the AHUs run; each economizes with no compressor while OAT and OA enthalpy are under its limits, and once locked out its stages climb with enthalpy toward the stages available. After hours a small share runs on tenant overrides. Fit to August&ndash;October (AHU stages, loop flow &times; range, on-site weather): weekday daytime within ~40 t RMS, the rest is day-to-day (Mondays, units down). The heat-pump heating side is fit to fall nights down to 37 °F and extrapolated below. Hover any control for what it does.</div>
 </div></details>
 
 </div>
@@ -480,30 +494,57 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
 <script>
 // ================= state =================
 var DT=0.1;
-var V={sup:1150,ret:1100,bldg:1050,basin:750};   // loop transport volumes (gal per node), split so the modeled hot- and cold-leg transport lags match the measured field transients (~2 min hot leg, ~1.8 min cold leg fan-off).
+var V={sup:1150,ret:1100,bldg:1050,basin:750};   // loop transport volumes (gal per node), split so the modeled hot- and cold-leg transport lags match
 var H0=163.4, AC=(163.4-135.5)/(1850*1850);
 var FAN_KW=25*0.746/(0.92*0.97);   // 25 HP tower fan -> electrical kW at full speed (shaft HP / motor 0.92 / VFD 0.97).
 
 // De-identified public build: no site, owner, tenant, or equipment-make identifiers. The aggregate
 // equipment profile and operating points below are real, kept intentionally for realism.
 var CFG={
-  sp:75, lowLim:50, bypHold:65, bypClose:70, band:2, timer:10, dpSP:8.5,   // CWS setpoint / WSHP low-limit (below it: fans off + bypass) / bypass hold + close / stage band / stage timer / DP setpoint.
-  pumpMin:0.50, gpmFloor:700, freeze:38, oatLock:25, minCellFlow:459,  // pump min speed / GPM floor / basin freeze trip / single-cell OAT lockout / min per-cell tower flow. minCellFlow ~= 50% of certified per-cell design flow: below it a wetted crossflow cell in subfreezing air can wet unevenly and ice (FREEZE RISK) even with the bulk loop near the low-limit -- a guardrail against diverting too much flow off the tower (refs: ASHRAE 90.1; reduce CELLS, not flow-per-cell).
+  sp:75, lowLim:50, bypHold:65, bypClose:70, band:2, timer:10, dpSP:8.5,   // CWS setpoint / WSHP low-limit (below it: fans off + bypass) / bypass hold + close / stage band / stage timer / DP setpoint (design SOO)
   npshaTrip:22.9, lowFlowTrip:536.7,          // alarm trips: suction NPSHa floor (psi) for the LOW NPSHa flag; loop-flow floor (gpm) for the LOW FLOW flag
+  pumpMin:0.50, gpmFloor:700, freeze:38, oatLock:25, minCellFlow:459,  // pump min speed / GPM floor / basin freeze trip / single-cell OAT lockout / min per-cell tower flow (~50 % of the certified per-cell design flow: below it a wetted crossflow cell can wet unevenly and ice in freezing air -> FREEZE RISK)
   enLag:true, enBypass:true, enFreeze:true, enLowLimit:true, balancedFans:false,  // balancedFans: dual-mode fans run together at equal speed (parallel) instead of split-range lead/lag
-  epsMax:0.588, fanExp:0.6, wlExp:1.05, wlRef:846, fanFloor:0.05, apprMin:3.5, airCap:51, fanFixed:0.12, minLeave:43,  // tower model (e-NTU): epsMax = design effectiveness; fanExp = NTU-vs-fan-speed exponent; wlExp/wlRef = overload derate above per-cell nominal flow; fanFloor = natural-draft airflow (fan off); apprMin = min approach to wet-bulb; airCap = air-side (Merkel) reject limit (tons per Btu/lb at full fan); fanFixed = per-fan fixed electrical loss, making fan kW = FAN_KW*(fanFixed+(1-fanFixed)*speed^3) so two fans carry two fixed costs (why lead/lag can beat balanced at low load); minLeave = cold-weather leaving-water floor (ice avoidance).
-  kser:1.95e-5, kcell:2.0e-6, static:15, kdp:8.2/(1215*1215), cvByp:900,   // hydraulics: kser = building-loop resistance, kcell = per-cell tower resistance (both solved against the pump curve for flow); static = open-tower lift (~15 ft, basin up to the tower distribution; the building loop itself is a recovered siphon, but the open tower at the top breaks it); kdp = DP-vs-flow coefficient; cvByp = warming-bypass Cv. kser/kdp fit to the field pump-speed sweep; the pump deadheads below ~30% where shutoff head drops under the open-tower lift.
+  loneFanLoss:0.15,                          // one wet cell only: fan airflow = (speed - this)/(1 - this), fit to the single-cell trends. Two cells (both fans together) need none
+  epsMax:0.556, fanExp:0.792, wlExp:1.11, wlRef:846, wlCap:1.07, fanFloor:0.079, apprMin:3.5, airCap:29.6, fanFixed:0.12, minLeave:43,  // tower e-NTU: design effectiveness, fan and water-loading exponents, water-loading gain cap, natural-draft airflow (a tower total shared by the wet cells), min approach, air-side (Merkel) cap per cell at full fan, per-fan fixed loss, cold-weather leaving floor. Fit to the fall trends; at the certified point (918 gpm/cell, 74 F WB, full fan) it leaves 85.5 F vs certified ~85
+  cellSplit:1.089,                           // CT-1 / CT-2 flow with both risers open. Set on the return side (risers + hot-water distribution): the basins are coupled through the shared suction, which only sets the level offset
+  kser:3.87e-5, kcell:2.0e-6, static:15, kdp:9.5/(980*980), cvByp:940, bypN:1.9,   // hydraulics: building-loop resistance, per-cell tower resistance, open-tower lift (tower branch only: the bypass skips it), 3rd-floor DP = kdp*Q^2, bypass Cv = cvByp*pos^bypN (valve + piping). Fit to the fall trends
   fanKp:0.25, fanKi:0.04, bypKp:0.30, bypKi:0.05, dpKp:0.02, dpKi:0.02,  // dp retuned for dt=0.1
+  // ---- sequence: 'prog' = the program running on the tower controller; 'soo' = the documented design
+  // sequence (everything above this line that the program doesn't use) ----
+  seq:'prog',
+  bypOffset:10, bypMax:50,                   // the bypass loop holds header supply at SP - this; both bypass loops are capped at bypMax
+  fanMinSpd:1/3, fanOnLoop:5, fanOffLoop:1,  // a running fan never drops below ~33 % (the output table maps loop 0..100 % to 3.33..10 V); a cell's fan starts at loop > fanOnLoop and stops at loop < fanOffLoop
+  fanMinOff:0,                               // s a stopped fan must stay off before restarting. 0 = as running (the fans short-cycle at light load)
+  winterOAT:40, wintLeaveSP:50, ctFlowMin:50,  // winter mode on below OAT 40 (as the controller reads it), off 5 F above; the winter loop holds tower-leaving (cells flowing > ctFlowMin gpm) >= wintLeaveSP
+  oatBias:1.8,                               // the controller's outdoor sensor reads this much above the true OAT (vs an on-site weather station); winter mode and the makeup timer key on it
+  dp3SP:9, hdrSPmin:9, hdrSPmax:20, khdr:13.1/(929*929),   // DP cascade: 3rd-floor DP resets the header DP setpoint (min-max psi), header DP drives pump speed. Header DP = khdr*Q^2
+  pumpRot:'weekly', swapDow:2, swapTod:600, pumpRampSec:120,  // weekly swap Tuesday 10:00; an incoming pump is held to 25 % for 30 s, then may ramp to 100 % by pumpRampSec
+  ppFanKp:2.0, ppFanKi:1.2,                  // the program's own loop gains (panel units / 1000): fan loop PG 2000, IG 20. Kp per F; Ki per F per s (x60 = per minute here)
+  ppBypKp:0.15, ppBypKi:0.45,                // both bypass loops: PG 150, IG 7.5
+  ppDpOKp:3.0, ppDpOKi:0.3,                  // outer cascade, 3rd-floor DP -> header DP setpoint: PG 3000, IG 5
+  ppDpIKp:0.1, ppDpIKi:0.3,                  // inner cascade, header DP -> pump speed: PG 100, IG 5 (a slow inner loop)
+  // ---- water side: cold-basin levels in inches, the makeup, evaporation ----
+  lvlSP:17, lvlDB:1,                         // makeup opens below SP - lvlDB and closes above SP, on CT-1's level (CT-2's if CT-1 is out of service)
+  mkpGPM:14,                                 // makeup flow into the pump discharge, gpm
+  evapFrac:0.74, waterLoss:0.45,             // basin loss = evapFrac x the all-latent evaporation of the heat rejected (24 x tons / 1051 gpm) + waterLoss gpm (splash, blowdown, drift, leaks)
+  ct2LvlK:4.7e-6,                            // CT-2's basin rides above CT-1's by this x CT-2's draw^2 (in/gpm^2): the friction of its longer outlet run, ~1.1" at 480 gpm. The basins are coupled through the suction tee
+  mkpT:70.5, mkpPlume:0.25,                  // makeup water temperature at the tie-in, and the share of makeup water the header supply sensor sees during a fill (it sits next to the tie-in): the reading drops mkpPlume x (supply - mkpT). 0 = sensor moved 10+ diameters downstream
+  holdK:0.343,                               // water held on a cell's hot-water basin and fill, gal per gpm through it; it drains to the cold basin when the flow drops
   load:450, wb:60, oat:73, mode:'dual', pump:'CTP-1', singleTower:'CT-1', leadTower:'CT-1',
-  // ---- weather-driven building-load model (from the building HVAC summary): loop load =
-  // CRAC/IT floor + economizer-gated AHU cooling + bidirectional heat-pump (cool warm / heat cold) ----
+  // ---- weather-driven building load, fit to the Aug-Oct AHU and loop trends:
+  // loop heat = a 24/7 floor + heat per compressor stage x stages running - heat-pump heating ----
   loadSource:'manual',                       // 'manual' = use the load slider; 'building' = compute from OAT/WB + schedule
-  base24:75,                                 // 24/7 base floor (tons): CRAC/IT + always-on heat pumps. The measured overnight rejection floor.
-  occBase:270, ahuPeak:450, ahuMin:30,       // occupied AHU floor (internal-gain dominated, ~flat vs OAT) / hot-day max / economizing residual. Fit to weekday field trends.
-  hpHeat:55,                                 // WSHP heat drawn FROM the loop at design heating (diversified peak) -- can drive the loop net-negative in deep cold. Winter value is modeled, pending a cold-spell trend.
-  balOAT:55, designOAT:88, htgOAT:10,        // cooling balance pt / design cooling OAT / design heating OAT
-  econOAT:60, econEnth:19, econBand:3,        // AHU air-side economizer: free-cool when OAT < 60F AND enthalpy < 19 Btu/lb; econBand = OAT blend width (F) across the changeover (no instantaneous cliff)
-  todMin:840, weekday:true                    // sim clock: minutes since midnight (840=14:00); weekday = M-F (AHUs scheduled 05:00-18:00, staggered)
+  base24:32,                                 // tons with no AHU compressor running, before pump heat (the sim adds its own): CRAC/IT, heat pumps, after-hours
+  stgTons:13.8,                              // loop heat per compressor stage running, compressor heat included (so no x1.2 on top)
+  stgAvail:28,                               // compressor stages that can run: 30 installed less one unit normally off
+  stgLock0:5.3, stgLockK:2.55,               // AHUs locked out of economizer (minimum OA, coils on ~return air): stages = avail x (1 - exp(-x/avail)), x = stgLock0 + stgLockK x (h - 20 Btu/lb). Weekday occupied RMS 2.9 stages (~40 t), 3.0 on held-out days; certified 74 F WB -> ~360 t
+  econOAT:60.8, econEnth:22.1,               // AHUs economize (no compressors run) while OAT < econOAT AND OA enthalpy < econEnth, against true outdoor air. The units' own setpoints are 60 F / 19 Btu/lb on their own OA sensor, which reads low
+  econOATBand:2.0, econEnthBand:0.31,        // spread of that switchover across the 13 units (F, Btu/lb)
+  afterHrs:0.051,                            // nights and weekends: tenant overrides run this share of the occupied stages (~0.6 stages mean)
+  hpHeat:21,                                 // WSHP heating draw FROM the loop at the design heating OAT. Fit to fall nights with no compressor running (coldest 37 F), so 10 F is an extrapolation; deep-winter net stays positive (24/7 CRAC/IT)
+  balOAT:55, htgOAT:10,                      // heat-pump heating demand: none at balOAT, full at htgOAT (design heating OAT). Assumed; no heating-season data yet
+  todMin:840, dow:3, weekday:true             // sim clock: minutes since midnight (840=14:00); dow 0=Sun..6=Sat (advances at midnight; drives the weekly pump swap); weekday = M-F, follows dow (AHUs scheduled 05:00-18:00, staggered)
 };
 var OV={pump:false, fan1:false, fan2:false, byp:false};
 var MAN={pump:0.62, fan1:58/60, fan2:0, byp:0};
@@ -514,7 +555,23 @@ var MAN={pump:0.62, fan1:58/60, fan2:0, byp:0};
 // quick-fill makeup (normally OFF/winterized). Real makeup is on the SUPPLY side AFTER the pumps, so a
 // basin whose RETURN is shut gets NO refill and drains to air. Basins separated.
 var VLV={ ret:[1,1], sup:[1,1], bypIso:1, xconn:1, pDis:[1,1], fill:[0,0] };
-var BASIN_GAL=817, FILL_GPM=40;   // nameplate-derived basin volume: ~817 gal/cell at overflow; the running sump sits below this.
+var FILL_GPM=40;   // manual quick-fill straight to a basin (the bare 1-1/4" bypass ran 58 gpm with the tower off, 35 running)
+// One cold basin, field-metered: gal per inch by depth
+// band -- the sloped self-cleaning floor is fully under water by ~10" -- overflow at 21", 23" deep. Dry to 17" = 594 gal
+// (metered 584), to the overflow 781 (~773).
+var BASIN_BANDS=[[3.2,13.1],[6,17.8],[10,43.8],[23,46.7]], BASIN_OVF=21;
+function basinVol(L){ var v=0, lo=0; for(var b=0;b<BASIN_BANDS.length&&L>lo;b++){ v+=(Math.min(L,BASIN_BANDS[b][0])-lo)*BASIN_BANDS[b][1]; lo=BASIN_BANDS[b][0]; } return v; }
+// Air at the basin outlet: as the level falls below ~11" the outlet pulls air and the flow collapses (two
+// field events, one cell at 62.8 %). The most one outlet passed without air at each level (in, gpm);
+// above 11" a higher flow needs more submergence, 391 gpm per inch.
+var OUTLET_CAP=[[2.5,0],[3,37],[3.5,50],[4,76],[4.5,92],[5,118],[5.5,206],[6,210],[6.5,222],[7,265],[7.5,276],[8,299],[8.5,339],[9,339],[9.5,408],[10,562],[10.5,763],[11,954]];
+function outletCap(L){
+  var t=OUTLET_CAP, n=t.length;
+  if(L<=t[0][0])return 0;
+  if(L>=t[n-1][0])return t[n-1][1]+391*(L-t[n-1][0]);
+  for(var k=1;k<n;k++){ if(L<=t[k][0])return t[k-1][1]+(t[k][1]-t[k-1][1])*(L-t[k-1][0])/(t[k][0]-t[k-1][0]); }
+}
+function basinLvl(v){ var lo=0; for(var b=0;b<BASIN_BANDS.length;b++){ var cap=(BASIN_BANDS[b][0]-lo)*BASIN_BANDS[b][1]; if(v<=cap||b===BASIN_BANDS.length-1)return lo+Math.max(0,v)/BASIN_BANDS[b][1]; v-=cap; lo=BASIN_BANDS[b][0]; } }
 var running=true, speed=2;
 
 function fillArr(){var a=[];for(var i=0;i<400;i++)a.push(80);return a;}
@@ -531,44 +588,67 @@ function PID(kp,ki,omin,omax,rev){return {kp:kp,ki:ki,omin:omin,omax:omax,rev:re
     return Math.max(this.omin,Math.min(this.omax,this.kp*e+this.ki*this.i));
   },
   reset:function(){this.i=0;}};}
+// controller LOOP with a bias: the output starts at the bias, so seed the integrator to it
+function biasPID(kp,ki,omin,omax,rev,bias){var p=PID(kp,ki,omin,omax,rev); p.bias=bias; p.reset=function(){this.i=this.bias/this.ki;}; p.reset(); return p;}
 var C={fan:PID(0.25,0.04,0,2,true),byp:PID(0.30,0.05,0,1,false),dp:PID(0.02,0.02,0.30,1,false),
-       pumpSpeed:0,lead:0,lag:0,bypass:0,fanCell:[0,0],lagEnabled:false,tLeadSat:0,tBelow:0,ramp:0.5,oatLocked:false};
-var S={Tcws:80,Tcwr:80,basin:[80,80],level:[1,1],hyd:null,q:0,tons:0,npsha:0,bhp:0,fankW:0,bld:null};
+       pumpSpeed:0,lead:0,lag:0,bypass:0,fanCell:[0,0],lagEnabled:false,tLeadSat:0,tBelow:0,ramp:0.5,oatLocked:false,
+       // running-program state: loops (bias per the LOOP statements), pump alternation (SEQ 12 = P1 leads), timers in seconds
+       pFan:biasPID(CFG.ppFanKp,CFG.ppFanKi,0,100,true,50), pByp:biasPID(CFG.ppBypKp,CFG.ppBypKi,0,CFG.bypMax,false,25), pWin:biasPID(CFG.ppBypKp,CFG.ppBypKi,0,CFG.bypMax,false,25),
+       pDpO:biasPID(CFG.ppDpOKp,CFG.ppDpOKi,CFG.hdrSPmin,CFG.hdrSPmax,false,CFG.hdrSPmin), pDpI:biasPID(CFG.ppDpIKp,CFG.ppDpIKi,0,100,false,50),
+       seq:12, pRun:[true,false], pSpd:[0,0], pOnT:[1e6,0], pOffT:[0,1e6], hold:0,
+       ctSS:[false,false], ctOffT:[1e6,1e6], fanLoop:0, dpLoop:50, hdrSP:13, winter:false, loc1:70,
+       mkp:false, mkpOnT:0, mkpOffT:0, lvlFail:false};   // makeup valve and its on/off timers (s)
+var S={Tcws:80,Tcwr:80,supSens:80,basin:[80,80],level:[17,18],hold:null,hyd:null,q:0,tons:0,npsha:0,bhp:0,fankW:0,bld:null,cellQ:[0,0],evap:0};   // level = cold-basin water depth, inches; hold = gal on each cell's hot basin + fill
 
 // ================= physics =================
 function valveK(cv){cv=Math.max(cv,1e-6);return 2.31/(cv*cv);}
-function solveHyd(N,bp,cells){
+function solveHyd(N,bp,cells,qtMax){
   if(N<=0||CFG.mode==='shutdown')return {q:0,qt:0,qb:0,head:0,dp:0,bhp:0};
-  var kt=cells>0?CFG.kcell/(cells*cells):1e9;
-  var cvb=CFG.cvByp*Math.max(bp,1e-4);
+  // qtMax: the most the basin outlets pass without air (outletCap). Past it the tower branch stops taking more,
+  // whatever the pump would push, and only the bypass (return water) still feeds the suction.
+  var qmax=(qtMax===undefined)?Infinity:qtMax;
+  // The open-tower lift (CFG.static) sits on the TOWER branch only: water has to climb to the hot-water
+  // basins and falls back at atmosphere, while the bypass is a closed pipe from the return header straight
+  // to the pump suction. So the return-header-to-suction pressure p sets both branches -- tower
+  // qt = sqrt((p-static)/kt) once p clears the lift, bypass qb = sqrt(p/kb) -- and the pump closes the
+  // loop: N^2*H0 - (AC+kser)*q^2 = p. That's why a half-open bypass takes ~3/4 of the flow (fall
+  // trends) and why the loop no longer deadheads when the risers shut with the bypass open.
+  var kt=cells>0?CFG.kcell/(cells*cells):1e12;
+  var cvb=CFG.cvByp*Math.pow(Math.max(bp,1e-4),CFG.bypN);   // butterfly characteristic, fit to the bypass position vs its flow meter
   var kb=bp>1e-3?valveK(cvb):1e12;
-  var inv=1/Math.sqrt(kt)+1/Math.sqrt(kb);
-  var kpar=1/(inv*inv);
-  var ksys=CFG.kser+kpar;
-  var num=N*N*H0-CFG.static;
-  if(num<=0)return {q:0,qt:0,qb:0,head:0,dp:0,bhp:0};
-  var q=Math.sqrt(num/(AC+ksys));
+  var hs=N*N*H0, kp=AC+CFG.kser, lo=0, hi=hs, qt=0, qb=0, q=0;
+  if(hs<=0)return {q:0,qt:0,qb:0,head:0,dp:0,bhp:0};
+  for(var it=0;it<40;it++){
+    var p=(lo+hi)*0.5;
+    qt=p>CFG.static?Math.min(qmax,Math.sqrt((p-CFG.static)/kt)):0; qb=Math.sqrt(p/kb); q=qt+qb;
+    if(hs-kp*q*q>p)lo=p; else hi=p;
+  }
+  var air=qmax<Infinity&&qt>=qmax-0.5&&N>0.05;
+  if(q<=1)return {q:0,qt:0,qb:0,head:0,dp:0,bhp:0,air:air};
   var head=H0*N*N-AC*q*q;
-  var gt=1/Math.sqrt(kt), gb=1/Math.sqrt(kb);
-  var ft=gt/(gt+gb);
-  var qt=q*ft, qb=q-qt;
   var x=q/1770.8, eta=0.85*(2*x-x*x); if(eta<0.35)eta=0.35;   // part-load pump efficiency: 0.85 at BEP (1770.8 gpm), falling off below BEP.
   var bhp=head>0?q*head/(3960*eta):0;
-  return {q:q,qt:qt,qb:qb,head:head,dp:CFG.kdp*q*q,bhp:bhp};
+  return {q:q,qt:qt,qb:qb,head:head,dp:CFG.kdp*q*q,bhp:bhp,air:air};
 }
-function towerLeave(tin,qc,s){
+function towerLeave(tin,qc,s,nWet){
   if(qc<=1)return {tout:tin,tons:0};
   s=Math.max(0,Math.min(1,s));
+  // Natural draft (fans off) is a TOWER total shared by the wetted cells: the fall trends show two wet
+  // cells with fans off reject the same heat as one (the unit sits against a wall, open only front + top).
   // open evaporative tower (e-NTU form). Airflow = fan-driven (proportional to speed) with a
   // small natural-draft floor when the fan is off; cold/dry winter air rejects more via the larger
   // (Tin - WB) potential. The MIN-APPROACH floor (CFG.apprMin) encodes the real minimum approach a
   // finite-NTU tower holds: without it, constant-eps lets the leaving water collapse to the wet-bulb
   // at low load and over-cool the loop BELOW outdoor dry-bulb (disproven by field data).
-  // wl cap is min(1.0,..) so the water term only DERATES an overloaded cell, never enhances below
-  // design flow -- keeps dual-cell (per-cell flow < 846) at the 0.588 nameplate.
-  var G=Math.max(s,CFG.fanFloor);                            // airflow as a fraction of design
+  // The water-loading term is capped at CFG.wlCap: 1.0 means it only DERATES an overloaded cell and
+  // never enhances below wlRef (the v4 assumption); above 1.0 a lightly loaded cell gains NTU.
+  // A lone wet cell loses a slice of its fan's air at low speed: with one cell in service (Aug-Sep, the other drained)
+  // the running fan behaves as (s - loneFanLoss)/(1 - loneFanLoss). Mechanism unknown -- air through the idle
+  // neighbour, or the overloaded cell (~1,000 gpm) curtaining its inlet face at low air velocity.
+  var sEff=((nWet||1)===1&&s>0)?Math.max(0,(s-CFG.loneFanLoss)/(1-CFG.loneFanLoss)):s;
+  var G=Math.max(sEff,CFG.fanFloor/Math.max(1,nWet||1));     // airflow as a fraction of design
   var ntu0=-Math.log(1-Math.min(0.95,CFG.epsMax));           // anchored: full fan + nominal flow -> design eps
-  var ntu=ntu0*Math.pow(G,CFG.fanExp)*Math.min(1.0,Math.pow(CFG.wlRef/Math.max(qc,1),CFG.wlExp));
+  var ntu=ntu0*Math.pow(G,CFG.fanExp)*Math.min(CFG.wlCap,Math.pow(CFG.wlRef/Math.max(qc,1),CFG.wlExp));
   var eps=Math.max(0,Math.min(1-Math.exp(-ntu),0.98));       // Cr->0 evaporative limit
   var tout=Math.min(tin, Math.max(tin-eps*(tin-CFG.wb), CFG.wb+CFG.apprMin));
   // AIR-SIDE (Merkel) heat-rejection cap: the choked fill is airflow-limited at low fan, so the leaving
@@ -576,18 +656,19 @@ function towerLeave(tin,qc,s){
   // = WARMER of the water-side (e-NTU) result and this air-side floor -> pins CWS and widens the approach
   // as WB drops (matches the low-fan field runs). Bisection for the floor.
   var hWB=enthSat(CFG.wb), lo=CFG.wb+0.3, hi=tin;
-  for(var it=0;it<14;it++){ var ta=(lo+hi)*0.5; if(qc*(tin-ta)/24 - CFG.airCap*G*(enthSat(ta)-hWB) > 0) lo=ta; else hi=ta; }   // fixed 14-iteration bisection: converges well within display precision for this bracket
+  for(var it=0;it<14;it++){ var ta=(lo+hi)*0.5; if(qc*(tin-ta)/24 - CFG.airCap*G*(enthSat(ta)-hWB) > 0) lo=ta; else hi=ta; }
   var taStar=(lo+hi)*0.5; if(taStar>tout)tout=taStar;
   if(tout<CFG.minLeave)tout=CFG.minLeave;   // COLD-WEATHER FLOOR: the tower can't drive flowing water below ~freezing/ice-avoidance min
   return {tout:tout,tons:qc*8.34*(tin-tout)/200};
 }
 function npsha(q){return 33.9-8.0e-7*q*q-1.0;}   // both pumps flooded at basin level: no lift
 function nodeUpdate(T,Tin,vol,q){if(q<=1)return T;var tau=vol/q;var r=DT/tau;return (T+r*Tin)/(1+r);}
-function delayed(h,vol,q){if(q<=1)return h[h.length-1];var st=Math.max(1,Math.min(h.length-1,Math.round((vol/q)/DT)));return h[h.length-st];}   // transport delay = vol/q, capped at the history length (~40 min); the cap engages only at non-operational low flow
+function delayed(h,vol,q){if(q<=1)return h[h.length-1];var st=Math.max(1,Math.min(h.length-1,Math.round((vol/q)/DT)));return h[h.length-st];}
 function pushHist(h,x){h.push(x);if(h.length>400)h.shift();}
 
 // ---- which physical tower cell(s) are online, and each cell's fan speed ----
 function activeCount(){ return CFG.mode==='dual'?2:(CFG.mode==='shutdown'?0:1); }
+function basOAT(){ return CFG.oat+CFG.oatBias; }          // what the controller reads: its outdoor sensor, warm-biased
 function cellActive(i){ if(CFG.mode==='dual')return true; if(CFG.mode==='shutdown')return false; return i===((CFG.singleTower==='CT-2')?1:0); }
 function cellFan(i){ return C.fanCell?C.fanCell[i]:0; }
 
@@ -600,40 +681,122 @@ function enthSat(wbF){                                    // moist-air enthalpy 
 }
 function occupancy(){                                          // 0..1 occupied fraction from the sim clock
   if(!CFG.weekday) return 0;                                   // AHUs off on weekends
-  var t=CFG.todMin, s=300, full=375, e=1080;                  // 05:00 start, 06:15 fully on (15 AHUs ~5 min apart), 18:00 off
+  var t=CFG.todMin, s=300, full=360, e=1080;                  // 05:00 start, all running by 06:00, 18:00 off (Aug-Oct AHU fan status)
   if(t<s||t>=e) return 0;
-  if(t<full) return (t-s)/(full-s);                           // staggered morning ramp
+  if(t<full) return (t-s)/(full-s);                           // staggered morning start
   return 1;
 }
+// Compressor stages running with the AHUs on. A unit economizes, with no compressor, while OAT and OA
+// enthalpy are both under its limits; locked out, it drops to minimum OA, its coil sees mostly return air,
+// and the locked-out units' stages climb with enthalpy toward the stages available.
+function ahuStages(oat,h){
+  var econ=1/((1+Math.exp((h-CFG.econEnth)/CFG.econEnthBand))*(1+Math.exp((oat-CFG.econOAT)/CFG.econOATBand)));   // share economizing
+  var x=CFG.stgLock0+CFG.stgLockK*Math.max(0,h-20);
+  return {n:(1-econ)*CFG.stgAvail*(1-Math.exp(-x/Math.max(CFG.stgAvail,1e-6))), econ:econ};
+}
 function buildingLoad(oat,wb){
-  var enthOK=enthSat(wb)<CFG.econEnth;                          // economizer permitted only when the air is also dry enough
-  var ef=enthOK?Math.max(0,Math.min(1,(CFG.econOAT-oat)/CFG.econBand)):0;       // economizer fraction: 0->1 as OAT falls through econOAT over an econBand-wide blend (no changeover cliff)
-  var econ=ef>0.5;                                              // "economizing" for display once mostly engaged
-  var cd=Math.max(0,Math.min(1,(oat-CFG.balOAT)/(CFG.designOAT-CFG.balOAT)));   // cooling-demand fraction (hot-day weather term)
+  var a=ahuStages(oat,enthSat(wb)), occ=occupancy();
+  var stages=a.n*(occ+(1-occ)*CFG.afterHrs);                   // the M-F schedule, plus tenant overrides after hours
   var hd=Math.max(0,Math.min(1,(CFG.balOAT-oat)/(CFG.balOAT-CFG.htgOAT)));      // heating-demand fraction
-  var occ=occupancy();
-  // occupied AHU compressor load: a floor from internal gains (stays high even on cool mornings) that the
-  // weather term only exceeds on hot days; economizing (cool+dry) blends it down to the interior residual.
-  var mech=Math.max(CFG.occBase,CFG.ahuPeak*cd);               // mechanical-cooling AHU load (no economizer)
-  var ahuRaw=mech+(CFG.ahuMin-mech)*ef;                         // blend mechanical -> economizing residual across the changeover
-  var ahu=ahuRaw*occ;                                          // gated by the M-F 05:00-18:00 schedule
+  var ahu=CFG.stgTons*stages;
   var hp=-CFG.hpHeat*hd;                                       // WSHPs pull heat FROM the loop when cold
-  return {tons:CFG.base24+ahu+hp, econ:econ, occ:occ, ahu:ahu, hp:hp};
+  return {tons:CFG.base24+ahu+hp, econ:a.econ, stages:stages, occ:occ, ahu:ahu, hp:hp};
+}
+
+// ---- the program running on the tower controller. Freeze, WSHP low-limit and the pump speed floor of the
+// design sequence are NOT in this program, so they don't act here (alarms still show). ----
+function progSwap(){ C.seq=(C.seq===12)?21:12; C.hold=130/60; }   // flip SEQ, hold the DP loop at 63 % for 130 s
+function progControl(){
+  var dts=DT*60, i;                                          // program timers count seconds
+  C.pFan.kp=CFG.ppFanKp; C.pFan.ki=CFG.ppFanKi;
+  C.pByp.kp=C.pWin.kp=CFG.ppBypKp; C.pByp.ki=C.pWin.ki=CFG.ppBypKi; C.pByp.omax=C.pWin.omax=CFG.bypMax;
+  C.pDpO.kp=CFG.ppDpOKp; C.pDpO.ki=CFG.ppDpOKi; C.pDpO.omin=CFG.hdrSPmin; C.pDpO.omax=CFG.hdrSPmax;
+  C.pDpI.kp=CFG.ppDpIKp; C.pDpI.ki=CFG.ppDpIKi;
+  var riso=[0,0]; for(i=0;i<2;i++) riso[i]=cellActive(i)?VLV.ret[i]*100:0;   // riser isolation feedback: taking a cell out of service shuts its riser valve
+
+  // -- pumps: lead per SEQ; the incoming pump starts once off > 30 s, the outgoing stops
+  //    once the incoming has run > 75 s, so a swap overlaps both pumps for ~75 s --
+  var en=(riso[0]>50||riso[1]>50||C.bypass*100>20);          // a flow path is open
+  var lead=(C.seq===21)?1:0;
+  if(!en){ C.pRun=[false,false]; }
+  else{
+    if(C.pOffT[lead]>30) C.pRun[lead]=true;
+    if(C.pRun[lead]&&C.pOnT[lead]>75) C.pRun[1-lead]=false;
+  }
+  for(i=0;i<2;i++){ if(C.pRun[i]){ C.pOnT[i]+=dts; C.pOffT[i]=0; } else { C.pOffT[i]+=dts; C.pOnT[i]=0; } }
+  // -- DP cascade: 3rd-floor DP resets the header DP setpoint, which drives speed --
+  var dp3=S.hyd?S.hyd.dp:0, hdr=S.hyd?CFG.khdr*S.hyd.q*S.hyd.q:0;
+  if(C.hold>0){ C.hold-=DT; C.dpLoop=63; }                   // swap in progress: DP loop held at 63 % and the loops skipped
+  else if(en){ C.hdrSP=C.pDpO.step(CFG.dp3SP,dp3,DT); C.dpLoop=C.pDpI.step(C.hdrSP,hdr,DT); }
+  for(i=0;i<2;i++){
+    var rmp=C.pOnT[i]<=30?25:Math.min(100,25+75*(C.pOnT[i]-30)/Math.max(1,CFG.pumpRampSec-30));   // start ramp: 25 % until 30 s, then up to 100 %
+    var vso=C.pRun[i]?(OV.pump?MAN.pump*100:Math.min(rmp,C.dpLoop)):0;                          // MIN(ramp, loop); HAND overrides the running pump's command
+    var dmax=C.ramp*DT; C.pSpd[i]+=Math.max(-dmax,Math.min(dmax,vso/100-C.pSpd[i]));            // VFD accel/decel
+  }
+  C.pumpSpeed=Math.max(C.pSpd[0],C.pSpd[1]); CFG.pump=lead?'CTP-2':'CTP-1';
+
+  // -- bypass --
+  var f1=cellActive(0)&&S.cellQ[0]>CFG.ctFlowMin, f2=cellActive(1)&&S.cellQ[1]>CFG.ctFlowMin;   // cell flow above the minimum
+  if(f1&&f2)C.loc1=(S.basin[0]+S.basin[1])/2; else if(f1)C.loc1=S.basin[0]; else if(f2)C.loc1=S.basin[1];
+  // neither cell above the minimum: the program zeroes the winter limit but then recomputes it from the
+  // previous pass's value, so the last value is kept here too (likely a missing jump)
+  var oatS=basOAT(); if(oatS<CFG.winterOAT)C.winter=true; if(oatS>CFG.winterOAT+5)C.winter=false;
+  var wint=C.pWin.step(CFG.wintLeaveSP,C.loc1,DT), bl=C.pByp.step(CFG.sp-CFG.bypOffset,S.supSens,DT);   // the header supply sensor
+  var bypo=C.winter?Math.min(wint,bl):bl;
+  if(riso[0]<20&&riso[1]<20)bypo=100;                          // both risers shut: force the bypass open
+  C.bypass=(OV.byp?MAN.byp:bypo/100);
+  bypo=C.bypass*100;
+
+  // -- fans: ONE loop on header supply temp drives both cells at the same speed --
+  C.fanLoop=C.pFan.step(CFG.sp,S.supSens,DT);
+  for(i=0;i<2;i++){
+    if(riso[i]>50&&C.fanLoop>CFG.fanOnLoop&&bypo<5&&C.ctOffT[i]>=CFG.fanMinOff)C.ctSS[i]=true;
+    if(riso[i]<45||C.fanLoop<CFG.fanOffLoop||bypo>10)C.ctSS[i]=false;
+    C.ctOffT[i]=C.ctSS[i]?0:C.ctOffT[i]+dts;
+    C.fanCell[i]=C.ctSS[i]?CFG.fanMinSpd+(1-CFG.fanMinSpd)*C.fanLoop/100:0;   // output table: loop 0..100 % -> 3.33..10 V
+  }
+  if(OV.fan1)C.fanCell[0]=MAN.fan1;
+  if(OV.fan2)C.fanCell[1]=MAN.fan2;
 }
 
 var ALARMS={};
 function step(){
   ALARMS={};
-  CFG.todMin+=DT; if(CFG.todMin>=1440)CFG.todMin-=1440;       // advance sim clock (drives the occupancy schedule)
+  var prevTod=CFG.todMin;
+  CFG.todMin+=DT; if(CFG.todMin>=1440){ CFG.todMin-=1440; CFG.dow=(CFG.dow+1)%7; }   // advance sim clock (occupancy schedule, weekly pump swap)
+  CFG.weekday=(CFG.dow>=1&&CFG.dow<=5);
+  if(CFG.seq==='prog'&&CFG.pumpRot==='weekly'&&CFG.dow===CFG.swapDow&&prevTod<CFG.swapTod&&CFG.todMin>=CFG.swapTod)progSwap();
   if(CFG.loadSource==='building'){ S.bld=buildingLoad(CFG.oat,CFG.wb); CFG.load=Math.round(S.bld.tons); }
   if(CFG.mode==='shutdown'){
     C.pumpSpeed=C.lead=C.lag=C.bypass=0; C.dp.reset();C.fan.reset();C.byp.reset();
-    S.hyd=solveHyd(0,0,0); S.q=0; S.tons=0; S.npsha=npsha(0); S.bhp=0;
-    pushHist(cwsHist,S.Tcws); pushHist(bldgHist,S.Tcwr); return;
+    C.pRun=[false,false]; C.pSpd=[0,0]; C.ctSS=[false,false]; C.fanCell=[0,0]; C.pDpI.i=0;   // program disable
+    for(var ps=0;ps<2;ps++){ C.pOnT[ps]=0; C.pOffT[ps]+=DT*60; }
+    makeupControl(); plantStep(); return;                    // no flow: the towers drain back to the basins, levels keep integrating
   }
+  if(CFG.seq==='prog')progControl(); else sooControl();
+  makeupControl();
+  plantStep();
+}
+
+// ---- makeup, as the running program does it (both sequences): on/off on CT-1's level, plus level-fail
+// timers. A valve on 20 min, or off longer than 5500 s at 65 F (outdoor sensor) falling to 3600 s at 75 F,
+// flags a level fail; that pass turns the valve on after 12 min off or off after 6 min on, and the flag
+// clears the next pass, so at light load (1" lasts longer than the off limit) every fill is a timed top-up. ----
+function makeupControl(){
+  var dts=DT*60;
+  if(C.mkp){ C.mkpOnT+=dts; C.mkpOffT=0; } else { C.mkpOffT+=dts; C.mkpOnT=0; }
+  var offMax=Math.max(3600,Math.min(5500,5500-(basOAT()-65)*190));
+  C.lvlFail=C.mkpOnT>=1200||C.mkpOffT>=offMax;
+  if(C.lvlFail){ if(C.mkpOffT>=720)C.mkp=true; if(C.mkpOnT>=360)C.mkp=false; return; }
+  var L=S.level[cellActive(0)?0:1];                            // CT-1 out of service -> CT-2's level
+  if(L<CFG.lvlSP-CFG.lvlDB)C.mkp=true; else if(L>CFG.lvlSP)C.mkp=false;
+}
+
+// ---- the documented design sequence ----
+function sooControl(){
   var cells=CFG.mode==='dual'?2:1;
   var basinMin=99; for(var bm=0;bm<2;bm++){if(cellActive(bm))basinMin=Math.min(basinMin,S.basin[bm]);} if(basinMin===99)basinMin=S.Tcwr;
-  C.fan.kp=CFG.fanKp; C.fan.ki=CFG.fanKi;   // PID gains live-refresh from CFG each step (sliders); the constructor values are just initial defaults
+  C.fan.kp=CFG.fanKp; C.fan.ki=CFG.fanKi;
   C.byp.kp=CFG.bypKp; C.byp.ki=CFG.bypKi;
   C.dp.kp=CFG.dpKp;   C.dp.ki=CFG.dpKi;
 
@@ -650,7 +813,8 @@ function step(){
   var flowOk=!S.hyd||S.hyd.q>50;
   var perm=C.pumpSpeed>0&&flowOk;
   var freeze=CFG.enFreeze&&basinMin<CFG.freeze;
-  var low=CFG.enLowLimit&&S.Tcws<CFG.lowLim;     // WSHP low-limit (CFG.lowLim, default 50F): own enable, separate from freeze
+  var tsup=S.supSens;                            // the sequence sees the header supply sensor, like the program
+  var low=CFG.enLowLimit&&tsup<CFG.lowLim;       // 60F WSHP low-limit: own enable, separate from freeze
   C.oatLocked=false;
 
   // ---- FANS + BYPASS (AUTO) ----
@@ -667,7 +831,7 @@ function step(){
     C.lead=0; C.lag=0; C.bypass=1;
     C.fan.reset(); ALARMS.low_cws=true;
   } else {
-    var demand=perm?C.fan.step(CFG.sp,S.Tcws,DT):0;
+    var demand=perm?C.fan.step(CFG.sp,tsup,DT):0;
     if(!perm)C.fan.reset();
     if(cells>=2 && CFG.balancedFans){
       // BALANCED / PARALLEL staging: run BOTH cells' fans together at one modulated speed
@@ -679,12 +843,12 @@ function step(){
     } else {
       var lead=Math.min(1,demand); if(lead>0)lead=Math.max(0.10,lead);
       // single-mode OAT fan lockout
-      if(cells<2 && CFG.oat<CFG.oatLock){ lead=0; C.oatLocked=true; ALARMS.oat_lockout=true; }
+      if(cells<2 && basOAT()<CFG.oatLock){ lead=0; C.oatLocked=true; ALARMS.oat_lockout=true; }
       var lag=0;
       if(cells>=2&&CFG.enLag){
         C.tLeadSat=lead>=0.99?C.tLeadSat+DT:0;
-        C.tBelow=S.Tcws<(CFG.sp-CFG.band)?C.tBelow+DT:0;
-        if(!C.lagEnabled&&S.Tcws>(CFG.sp+CFG.band)&&C.tLeadSat>=CFG.timer)C.lagEnabled=true;
+        C.tBelow=tsup<(CFG.sp-CFG.band)?C.tBelow+DT:0;
+        if(!C.lagEnabled&&tsup>(CFG.sp+CFG.band)&&C.tLeadSat>=CFG.timer)C.lagEnabled=true;
         if(C.lagEnabled&&C.tBelow>=CFG.timer)C.lagEnabled=false;
         // lag fan is a LATCHED stage: once enabled it holds >= min fan (10%) and
         // modulates up; it only drops to 0 when staged off via the 10-min timer.
@@ -694,8 +858,8 @@ function step(){
       C.lead=lead; C.lag=lag;
     }
     if(CFG.enBypass){
-      if(S.Tcws<CFG.bypHold) C.bypass=C.byp.step(CFG.bypHold,S.Tcws,DT);
-      else if(S.Tcws>CFG.bypClose){ C.bypass=Math.max(0,C.bypass-0.5*DT); C.byp.reset(); }
+      if(tsup<CFG.bypHold) C.bypass=C.byp.step(CFG.bypHold,tsup,DT);
+      else if(tsup>CFG.bypClose){ C.bypass=Math.max(0,C.bypass-0.5*DT); C.byp.reset(); }
     } else { C.bypass=0; C.byp.reset(); }
   }
 
@@ -716,19 +880,30 @@ function step(){
     if(OV.fan1) C.fanCell[0]=MAN.fan1;
     if(OV.fan2) C.fanCell[1]=MAN.fan2;
   }
+  C.pRun=[CFG.pump==='CTP-1',CFG.pump==='CTP-2']; C.pSpd=[C.pRun[0]?C.pumpSpeed:0,C.pRun[1]?C.pumpSpeed:0];
+}
 
-  // ---- VALVE-AWARE HYDRAULICS + BASIN LEVEL + THERMAL ----
-  var ap=(CFG.pump==='CTP-2')?1:0;                          // active pump index
+// ---- VALVE-AWARE HYDRAULICS + BASIN LEVEL + THERMAL ----
+function plantStep(){
+  // pumps share the header through check valves (MPVs), so the faster running pump sets the head
+  var ap=(C.pSpd[1]>C.pSpd[0])?1:0;                         // active pump index
   var pumpBlocked=(VLV.pDis[ap]<0.5)||(ap===1&&VLV.xconn<0.5);   // discharge MPV shut, OR CTP-2 running with the cross-connect butterfly shut (CTP-1 keeps direct header suction)
   var bypEff=(VLV.bypIso>0.5)?C.bypass:0;                   // bypass needs its isolation valves open
   var supW=[0,0], retW=[0,0];                               // per-cell supply/return conductance (gated)
   for(var iv=0;iv<2;iv++){
-    supW[iv]=(cellActive(iv)&&VLV.sup[iv]>0.02&&S.level[iv]>0.03)?VLV.sup[iv]:0;  // can draw only if butterfly open AND basin has water
+    supW[iv]=(cellActive(iv)&&VLV.sup[iv]>0.02&&S.level[iv]>0.5)?VLV.sup[iv]:0;   // can draw only if butterfly open AND basin has water
     retW[iv]=(cellActive(iv)&&VLV.ret[iv]>0.02)?VLV.ret[iv]:0;
   }
   var nSup=(supW[0]>0?1:0)+(supW[1]>0?1:0);
-  var hyd=solveHyd(pumpBlocked?0:C.pumpSpeed, bypEff, nSup); S.hyd=hyd; var q=hyd.q;
-  var tonsRej=0, airAny=false, ovfAny=false, lowAny=false;
+  var capT=0; for(var ic=0;ic<2;ic++){ if(supW[ic]>0)capT+=outletCap(S.level[ic]); }
+  var hyd=solveHyd(pumpBlocked?0:C.pumpSpeed, bypEff, nSup, capT); S.hyd=hyd; var q=hyd.q;
+  var tonsRej=0, airAny=!!hyd.air, ovfAny=false, lowAny=false;
+  var gc=[CFG.cellSplit,1];                                  // relative conductance of the two cell branches (same path in and out)
+  var rsum=retW[0]*gc[0]+retW[1]*gc[1], ssum=supW[0]*gc[0]+supW[1]*gc[1];
+  // makeup joins the pump discharge, so (pump running or not) it rises with the return up whichever risers are open
+  var mkp=(C.mkp&&rsum>0)?CFG.mkpGPM:0, gain=[0,0], draw=[0,0];
+  for(var im=0;im<2;im++){ gain[im]=(rsum>0?mkp*retW[im]*gc[im]/rsum:0)+FILL_GPM*VLV.fill[im]; }
+  S.evap=0;
   if(q>1&&!pumpBlocked){
     var tin=delayed(cwsHist,V.bldg,q);
     var pumpHeat=hyd.bhp*0.746/3.517;   // pump brake power dissipates into the loop as heat (HP->kW->tons) — a real positive floor, never negative, matters most in deep cold at ~0 building load
@@ -736,23 +911,46 @@ function step(){
     var bout=tin+dT; pushHist(bldgHist,bout);
     S.Tcwr=delayed(bldgHist,V.ret,q);
     var qb=hyd.qb, basinDraw=Math.max(0,q-qb);              // bypass taps return->suction, not the basin
-    var rsum=retW[0]+retW[1], ssum=supW[0]+supW[1], mix=0, mw=0;
+    var mix=0, mw=0;
+    var nWet=0; for(var iw=0;iw<2;iw++){ if(cellActive(iw)&&rsum>0&&hyd.qt*retW[iw]*gc[iw]/rsum>1)nWet++; }
+    S.cellQ=[0,0];
     for(var i=0;i<2;i++){
-      var inflow = rsum>0 ? hyd.qt*retW[i]/rsum : 0;         // warm return into this cell's fill+basin
-      var outflow= ssum>0 ? basinDraw*supW[i]/ssum : 0;      // pump draw out of this basin
-      var net=inflow+FILL_GPM*VLV.fill[i]-outflow;           // separated basin: integrate level
-      S.level[i]=Math.max(0,Math.min(1.25,S.level[i]+net*DT/BASIN_GAL));
-      if(cellActive(i)&&VLV.sup[i]>0.02&&S.level[i]<=0.03&&q>1)airAny=true;   // butterfly open on empty basin -> air
-      if(S.level[i]>=1.25&&net>0)ovfAny=true;                                  // overfilling -> overflow
-      if(cellActive(i)&&S.level[i]<0.25)lowAny=true;
-      if(cellActive(i)&&inflow>1){ var r=towerLeave(S.Tcwr,inflow,cellFan(i)); tonsRej+=r.tons; S.basin[i]=nodeUpdate(S.basin[i],r.tout,V.basin,inflow); }
+      var inflow = rsum>0 ? hyd.qt*retW[i]*gc[i]/rsum : 0;   // warm return into this cell's fill+basin
+      var outflow= ssum>0 ? basinDraw*supW[i]*gc[i]/ssum : 0;  // pump draw out of this basin
+      S.cellQ[i]=inflow;
+      if(cellActive(i)&&inflow>1){
+        var r=towerLeave(S.Tcwr,inflow,cellFan(i),nWet); tonsRej+=r.tons; S.basin[i]=nodeUpdate(S.basin[i],r.tout,V.basin,inflow);
+        var ev=CFG.evapFrac*24*Math.max(0,r.tons)/1051+CFG.waterLoss/nWet;   // evaporation + splash/blowdown/drift/leaks, gpm
+        gain[i]-=ev; S.evap+=ev;
+      }
+      gain[i]+=inflow-outflow; draw[i]=outflow;
       if(outflow>1){ mix+=S.basin[i]*outflow; mw+=outflow; }  // supply blend weighted by what's actually drawn
     }
     var basinMix=mw>0?mix/mw:S.Tcwr;
     var tsuc=q>0?(basinDraw*basinMix+qb*S.Tcwr)/q:basinMix;
+    if(mkp>0)tsuc=(q*tsuc+mkp*CFG.mkpT)/(q+mkp);           // makeup joins at the discharge, at its own temperature
     S.Tcws=nodeUpdate(S.Tcws,tsuc,V.sup,q);
     pushHist(cwsHist,S.Tcws);
-  } else { pushHist(cwsHist,S.Tcws); pushHist(bldgHist,S.Tcwr); if(C.pumpSpeed>0.02&&CFG.mode!=='shutdown')ALARMS.deadhead=true; }
+  } else { S.cellQ=[0,0]; pushHist(cwsHist,S.Tcws); pushHist(bldgHist,S.Tcwr); if(C.pumpSpeed>0.02&&CFG.mode!=='shutdown')ALARMS.deadhead=true; }
+  // the hot-water basins and fill hold holdK x the flow through them, settling in ~30 s: a cell whose flow drops
+  // (bypass opening, pump stop) gives water back to its cold basin, one whose flow rises takes it
+  if(!S.hold)S.hold=[CFG.holdK*S.cellQ[0],CFG.holdK*S.cellQ[1]];
+  for(var ih=0;ih<2;ih++){ var dH=(CFG.holdK*S.cellQ[ih]-S.hold[ih])*Math.min(1,DT/0.5); S.hold[ih]+=dH; gain[ih]-=dH/DT; }
+  // cold-basin water: while both basins feed the suction they're one pool (communicating through the tee),
+  // CT-2 riding ct2LvlK x its draw^2 higher; an isolated basin integrates on its own
+  var vol=[basinVol(S.level[0])+gain[0]*DT, basinVol(S.level[1])+gain[1]*DT];
+  if(supW[0]>0&&supW[1]>0){
+    var off=CFG.ct2LvlK*draw[1]*draw[1], W=vol[0]+vol[1], lo=0, hi=BASIN_OVF+2;
+    for(var it=0;it<30;it++){ var mid=(lo+hi)/2; if(basinVol(mid)+basinVol(mid+off)>W)hi=mid; else lo=mid; }
+    S.level=[(lo+hi)/2,(lo+hi)/2+off];
+  } else S.level=[basinLvl(vol[0]),basinLvl(vol[1])];
+  for(var il=0;il<2;il++){
+    if(S.level[il]>BASIN_OVF){ S.level[il]=BASIN_OVF; ovfAny=true; }          // spills over the overflow
+    if(cellActive(il)&&VLV.sup[il]>0.02&&S.level[il]<=0.5&&q>1)airAny=true;   // drawing an empty basin -> air
+    if(cellActive(il)&&S.level[il]<13)lowAny=true;                            // below the level sensor's trusted band (13-20")
+  }
+  // the header supply sensor, next to the makeup tie-in: during a fill it reads a plume of makeup water
+  S.supSens=S.Tcws-(mkp>0&&q>1?CFG.mkpPlume*(S.Tcws-CFG.mkpT):0);
   if(airAny)ALARMS.air=true; if(ovfAny)ALARMS.overflow=true; if(lowAny)ALARMS.basin_low=true;
   S.q=q; S.tons=tonsRej; S.npsha=airAny?0:npsha(q); S.bhp=hyd.bhp;
   // fan electrical kW: per running fan = fixed loss + cube term (so two fans pay two fixed costs)
@@ -789,28 +987,37 @@ function render(){
   S_('basin2').setAttribute('opacity', a1?'1':'0.4'); S_('cv2').setAttribute('opacity', a1?'1':'0.35');
   S_('p_bypass').setAttribute('opacity', C.bypass>0.02?'1':'0.16');
   // active vs standby pump bodies (follow CFG.pump)
-  var p1Active=(CFG.pump==='CTP-1');
-  S_('pump1b').setAttribute('opacity', (p1Active&&!shut)?'1':'0.18'); S_('pump2b').setAttribute('opacity', (!p1Active&&!shut)?'1':'0.18');
-  setOp('p_suct1', p1Active&&!shut); setOp('p_disch1', p1Active&&!shut); setOp('p_suct2', !p1Active&&!shut); setOp('p_disch2', !p1Active&&!shut);
-  S_('pump1lbl').textContent='CTP-1'+(p1Active?' (lead)':' (standby)');
-  S_('pump2lbl').textContent='CTP-2'+(p1Active?' (standby)':' (lead)');
+  var p1Active=(CFG.pump==='CTP-1'), r1=C.pRun[0]&&!shut, r2=C.pRun[1]&&!shut;   // lead per the sequence; both run through a program swap
+  S_('pump1b').setAttribute('opacity', r1?'1':'0.18'); S_('pump2b').setAttribute('opacity', r2?'1':'0.18');
+  setOp('p_suct1', r1); setOp('p_disch1', r1); setOp('p_suct2', r2); setOp('p_disch2', r2);
+  S_('pump1lbl').textContent='CTP-1'+(p1Active?' (lead)':(r1?' (swapping)':' (standby)'));
+  S_('pump2lbl').textContent='CTP-2'+(p1Active?(r2?' (swapping)':' (standby)'):' (lead)');
+  if(render.lead!==CFG.pump){ render.lead=CFG.pump; setActive(['btn_ctp1','btn_ctp2'],p1Active?'btn_ctp1':'btn_ctp2'); }   // a weekly swap changes the lead on its own
   var h=18*Math.max(0,Math.min(1,C.bypass)); S_('byp_fill').setAttribute('height',h.toFixed(1)); S_('byp_fill').setAttribute('y',(420.4-h).toFixed(1));
   // overlays
   var dpv=(S.hyd?S.hyd.dp:0), hd=(S.hyd?S.hyd.head:0), qb=(S.hyd?S.hyd.qb:0);
   setTxt('t_cwr', shut?'idle':S.Tcwr.toFixed(1)+' °F');
   setTxt('t_basin1', a0?(Math.round(S.basin[0])+' °F'):'—'); setTxt('t_basin2', a1?(Math.round(S.basin[1])+' °F'):'—');
-  setTxt('t_lvl1', a0?Math.round(S.level[0]*100)+'%':'—'); setTxt('t_lvl2', a1?Math.round(S.level[1]*100)+'%':'—');
+  var mk=C.mkp&&!shut?' ▲':'';                                // makeup filling (it rises up both open risers)
+  setTxt('t_lvl1', a0?S.level[0].toFixed(1)+'″'+mk:'—'); setTxt('t_lvl2', a1?S.level[1].toFixed(1)+'″'+mk:'—');
+  for(var bi=0;bi<2;bi++){                                    // cold-basin water drawn to its depth (basin 23" deep, overflow 21")
+    var wh=55.4*Math.max(0,Math.min(1,S.level[bi]/23)), wy=(205.9-wh).toFixed(1);
+    ['basin'+(bi+1),'basin'+(bi+1)+'s'].forEach(function(id){ S_(id).setAttribute('height',wh.toFixed(1)); S_(id).setAttribute('y',wy); });
+  }
   setTxt('t_f1on', (a0&&cellFan(0)>0.001)?'ON':'OFF'); setTxt('t_f2on', (a1&&cellFan(1)>0.001)?'ON':'OFF');
   setTxt('t_f1', a0?(Math.round(cellFan(0)*100)+'%'):'off'); setTxt('t_f2', a1?(Math.round(cellFan(1)*100)+'%'):'off');
-  setTxt('t_cv1', a0?'open':'closed'); setTxt('t_cv2', a1?'open':'closed');
+  function cvTxt(i,a){ var v=a?VLV.ret[i]:0; return v>0.98?'open':(v<0.02?'closed':Math.round(v*100)+'%'); }   // the riser valve as it actually stands
+  setTxt('t_cv1', cvTxt(0,a0)); setTxt('t_cv2', cvTxt(1,a1));
   setTxt('t_byp', Math.round(C.bypass*100)+'%'); setTxt('t_fmb', shut?'—':gp(qb)+' gpm');
   setTxt('t_fms', shut?'—':gp(S.q)+' gpm'); setTxt('t_tsup', shut?'—':S.Tcws.toFixed(1)+' °F');
-  setTxt('t_dp14', shut?'—':(hd*0.433).toFixed(1)+' psi');
+  setTxt('t_dp14', shut?'—':(CFG.khdr*S.q*S.q).toFixed(1)+' psi');   // header DP, the program's inner DP loop
   setTxt('t_dp', dpv.toFixed(1)+' psi');
-  var p1=(CFG.pump==='CTP-1'), pr=(!shut&&S.q>1);
-  setTxt('t_p1on', (p1&&pr)?'ON':'OFF'); setTxt('t_p2on', (!p1&&pr)?'ON':'OFF');
-  setTxt('t_p1vfd', p1?Math.round(C.pumpSpeed*100)+'%':'0%'); setTxt('t_p2vfd', !p1?Math.round(C.pumpSpeed*100)+'%':'0%');
-  setTxt('t_p1dp', (p1&&pr)?(hd*0.433).toFixed(1)+' psi':'—'); setTxt('t_p2dp', (!p1&&pr)?(hd*0.433).toFixed(1)+' psi':'—');
+  var pr=(!shut&&S.q>1);
+  setTxt('t_p1on', r1?'ON':'OFF'); setTxt('t_p2on', r2?'ON':'OFF');
+  setTxt('t_p1vfd', Math.round(C.pSpd[0]*100)+'%'); setTxt('t_p2vfd', Math.round(C.pSpd[1]*100)+'%');
+  // differential across each running pump: the shared header head, but a pump too slow to open its check valve sees only its own shutoff head
+  function pdp(i){ var sh=H0*C.pSpd[i]*C.pSpd[i]; return (C.pRun[i]&&pr)?(Math.min(sh,hd)*0.433).toFixed(1)+' psi':'—'; }
+  setTxt('t_p1dp', pdp(0)); setTxt('t_p2dp', pdp(1));
   setTxt('t_p1tsup', shut?'—':S.Tcws.toFixed(1)+' °F'); setTxt('t_p2tsup', shut?'—':S.Tcws.toFixed(1)+' °F');
   setTxt('t_kw', 'fans '+S.fankW.toFixed(1)+' + pump '+(S.bhp*0.746/(0.92*0.97)).toFixed(1)+' kW');
   // ---- live readout faceplate (v4) ----
@@ -825,13 +1032,15 @@ function render(){
   if(CFG.loadSource==='building'&&SLIDER_REFRESH.load)SLIDER_REFRESH.load();   // show weather-computed load on the slider
   var clk=document.getElementById('clock_lbl'); if(clk){ clk.textContent=fmtClock(); var ci=document.getElementById('clock_in'); if(ci&&document.activeElement!==ci)ci.value=Math.round(CFG.todMin); }
   var qtw=S.hyd?S.hyd.qt:0;                                  // tower-return flow meters (WFS, per cell)
-  setTxt('t_fm1', shut?'—':(a0?gp(qtw/nAct):'0'));
-  setTxt('t_fm2', shut?'—':(a1?gp(qtw/nAct):'0'));
-  S_('dp_dot').setAttribute('stroke', Math.abs((S.hyd?S.hyd.dp:0)-CFG.dpSP)<0.4?'#639922':'#ba7517');
+  setTxt('t_fm1', shut?'—':(a0?gp(S.cellQ[0]):'0'));
+  setTxt('t_fm2', shut?'—':(a1?gp(S.cellQ[1]):'0'));
+  var dpOk=(CFG.seq==='prog')?Math.abs(CFG.khdr*S.q*S.q-C.hdrSP)<0.6:Math.abs((S.hyd?S.hyd.dp:0)-CFG.dpSP)<0.4;   // at its setpoint: header DP (program cascade) or 3rd-floor DP (design SOO)
+  S_('dp_dot').setAttribute('stroke', dpOk?'#639922':'#ba7517');
   // flags
-  var cav=(S.npsha<CFG.npshaTrip&&S.q>1), lf=(S.q<CFG.lowFlowTrip&&S.q>1), lo=(CFG.enLowLimit&&S.Tcws<CFG.lowLim&&S.q>1);  // 'cav' = LOW NPSHa: suction starvation (from air ingestion / loss of prime in this model, not flow-induced cavitation in the operating band)
-  var frz=(CFG.enFreeze&&Math.min(a0?S.basin[0]:99, a1?S.basin[1]:99)<CFG.freeze), hp=(S.bhp>75);
-  var cflow=(S.hyd&&nAct>0)?S.hyd.qt/nAct:0, frzrisk=(CFG.wb<32&&S.q>1&&cflow<CFG.minCellFlow);  // subfreezing WB + tower flow under ~50% design/cell -> uneven fill wetting freeze risk (the bypass-diverts-too-much case)
+  // LOW CWS / FREEZE are hazards whichever sequence runs; their tooltips (setSeq) say whether it acts on them
+  var cav=(S.npsha<CFG.npshaTrip&&S.q>1), lf=(S.q<CFG.lowFlowTrip&&S.q>1), lo=(S.Tcws<CFG.lowLim&&S.q>1);
+  var frz=(Math.min(a0?S.basin[0]:99, a1?S.basin[1]:99)<CFG.freeze), hp=(S.bhp>75);
+  var cflow=(S.hyd&&nAct>0)?Math.min(a0?S.cellQ[0]:1e9,a1?S.cellQ[1]:1e9):0, frzrisk=(CFG.wb<32&&S.q>1&&cflow<CFG.minCellFlow);  // subfreezing WB + tower flow under ~50% design/cell -> uneven fill wetting freeze risk (the bypass-diverts-too-much case)
   flag('flag_cav',cav); flag('flag_flow',lf); flag('flag_low',lo); flag('flag_frz',frz); flag('flag_frzrisk',frzrisk);
   flag('flag_oat',C.oatLocked); flag('flag_hp',hp);
   flag('flag_air',!!ALARMS.air); flag('flag_ovf',!!ALARMS.overflow); flag('flag_dead',!!ALARMS.deadhead); flag('flag_basin',!!ALARMS.basin_low); flag('flag_dtclamp',!!ALARMS.dtclamp);
@@ -840,7 +1049,8 @@ function render(){
   var pts=''; for(var i=0;i<spark.length;i++){var x=10+(660*i/164); pts+=x.toFixed(1)+','+yOf(spark[i]).toFixed(1)+' ';}
   S_('spark_line').setAttribute('points',pts);
   S_('spark_sp').setAttribute('y1',yOf(CFG.sp));S_('spark_sp').setAttribute('y2',yOf(CFG.sp));
-  S_('spark_low').setAttribute('y1',yOf(CFG.lowLim));S_('spark_low').setAttribute('y2',yOf(CFG.lowLim));
+  var ref=(CFG.seq==='prog')?CFG.sp-CFG.bypOffset:CFG.lowLim;   // program: the bypass loop's target; design SOO: the WSHP low limit
+  S_('spark_low').setAttribute('y1',yOf(ref));S_('spark_low').setAttribute('y2',yOf(ref));
 }
 
 // per-pipe flow animation
@@ -848,15 +1058,15 @@ var offMain=0, offSuc=0, offT1=0, offT2=0, offByp=0, aF1=0, aF2=0, aP1=0, aP2=0,
 var MAINp=['p_return','p_suction'];
 function frame(now){
   var dt=Math.min(0.05,(now-last)/1000); last=now;
-  var pa=(CFG.pump==='CTP-1');
+  var pa=(C.pSpd[0]>=C.pSpd[1]);                                 // flow goes through the faster pump (the slower one's check valve stays shut)
   aF1+=cellFan(0)*900*dt; aF2+=cellFan(1)*900*dt;
   S_('fan1b').setAttribute('transform','rotate('+(aF1%360).toFixed(1)+' 112.6 41.8)');
   S_('fan2b').setAttribute('transform','rotate('+(aF2%360).toFixed(1)+' 315 41.8)');
-  var pinc=C.pumpSpeed*820*dt;                                   // spin only the ACTIVE pump
-  if(pa){ aP1+=pinc; S_('pump1b').setAttribute('transform','rotate('+(aP1%360).toFixed(1)+' 178.6 472.1)'); }
-  else  { aP2+=pinc; S_('pump2b').setAttribute('transform','rotate('+(aP2%360).toFixed(1)+' 178.6 617.3)'); }
+  aP1+=C.pSpd[0]*820*dt; aP2+=C.pSpd[1]*820*dt;                 // each pump spins at its own speed (both during a swap)
+  S_('pump1b').setAttribute('transform','rotate('+(aP1%360).toFixed(1)+' 178.6 472.1)');
+  S_('pump2b').setAttribute('transform','rotate('+(aP2%360).toFixed(1)+' 178.6 617.3)');
   var qt=S.hyd?S.hyd.qt:0, qb=S.hyd?S.hyd.qb:0, nA=activeCount();
-  var q1=cellActive(0)?qt/Math.max(1,nA):0, q2=cellActive(1)?qt/Math.max(1,nA):0;   // per-cell flow (off cell -> 0 -> frozen)
+  var q1=cellActive(0)?S.cellQ[0]:0, q2=cellActive(1)?S.cellQ[1]:0;   // per-cell flow (off cell -> 0 -> frozen)
   offMain-=S.q*0.00055*dt*60; offT1-=q1*0.00055*dt*60; offT2-=q2*0.00055*dt*60; offByp-=qb*0.00055*dt*60;
   MAINp.forEach(function(p){S_(p).setAttribute('stroke-dashoffset',offMain.toFixed(1));});
   (pa?['p_suct1','p_disch1']:['p_suct2','p_disch2']).forEach(function(p){S_(p).setAttribute('stroke-dashoffset',offMain.toFixed(1));});
@@ -867,7 +1077,7 @@ function frame(now){
 }
 
 // ================= UI builders =================
-var SLIDER_REFRESH={}, SLIDER_INPUT={};   // lets external code (live weather) drive + lock CFG sliders
+var SLIDER_REFRESH={}, SLIDER_INPUT={}, SLIDER_ALL={};   // lets external code (live weather) drive + lock CFG sliders; ALL = every slider per key
 function stepDec(s){var p=(''+s).split('.');return p[1]?p[1].length:0;}
 function mkSlider(spec,obj){
   var f=spec.factor||1;
@@ -878,8 +1088,16 @@ function mkSlider(spec,obj){
   var inp=document.createElement('input'); inp.type='range'; inp.min=spec.min; inp.max=spec.max; inp.step=spec.step;
   inp.value=obj[spec.key]/f;
   function show(){val.textContent=(+inp.value).toFixed(spec.dec!==undefined?spec.dec:stepDec(spec.step))+(spec.unit?(' '+spec.unit):'');}
-  inp.oninput=function(){obj[spec.key]=(+inp.value)*f; show();};
-  if(obj===CFG){ SLIDER_INPUT[spec.key]=inp; SLIDER_REFRESH[spec.key]=function(){inp.value=obj[spec.key]/f; show();}; }
+  function refresh(){inp.value=obj[spec.key]/f; show();}
+  inp.oninput=function(){
+    obj[spec.key]=(+inp.value)*f; show();
+    if(obj===CFG)(SLIDER_ALL[spec.key]||[]).forEach(function(r){ if(r!==refresh)r(); });   // the same key on another list (e.g. the setpoint)
+  };
+  if(obj===CFG){
+    if(!SLIDER_INPUT[spec.key])SLIDER_INPUT[spec.key]=inp;
+    (SLIDER_ALL[spec.key]=SLIDER_ALL[spec.key]||[]).push(refresh);
+    SLIDER_REFRESH[spec.key]=function(){ SLIDER_ALL[spec.key].forEach(function(r){r();}); };
+  }
   show(); top.appendChild(lab); top.appendChild(val); w.appendChild(top); w.appendChild(inp);
   if(spec.desc){ w.title=spec.desc; lab.style.cursor='help'; }   // hover description
   return w;
@@ -894,28 +1112,98 @@ var SP_SPECS=[
   {key:'band',label:'Stage band ±',min:0.5,max:5,step:0.5,unit:'°F',desc:'Dead-band around setpoint for lead/lag fan staging (±2°F per sequence).'},
   {key:'timer',label:'Stage timer',min:0,max:20,step:1,unit:'min',desc:'Minimum time the lead fan must be saturated before the lag stages on / off (10 min, anti-short-cycle).'},
   {key:'dpSP',label:'DP setpoint',min:4,max:14,step:0.1,unit:'psi',desc:'3rd-floor remote differential-pressure target the pump VFD holds (~8.5 psi).'},
-  {key:'pumpMin',label:'Pump min speed',min:0,max:60,step:1,unit:'%',factor:0.01,desc:'Minimum pump VFD speed. Floored at 50% per operating policy (well above the ~30.3% deadhead edge, where the pump shutoff head drops under the 15 ft open-tower lift and flow stops).'},
+  {key:'pumpMin',label:'Pump min speed',min:0,max:60,step:1,unit:'%',factor:0.01,desc:'Minimum pump VFD speed. Floored at 50% per operating policy (well above the ~30.3% deadhead edge, where the pump shutoff head drops under the 15 ft open-tower lift and tower flow stops; an open bypass skips the lift and still circulates).'},
   {key:'gpmFloor',label:'GPM floor',min:0,max:1500,step:25,unit:'gpm',desc:'Minimum loop flow — pump speed is bumped up if flow would drop below this.'},
   {key:'freeze',label:'Freeze temp',min:35,max:50,step:1,unit:'°F',desc:'Basin freeze trip: fans off + the bypass CLOSES (forces ALL flow up through the tower to flush the fill — the OPPOSITE of the low-limit, which opens it). Model 38°F (emergency, below the normal low-40s running floor); documented SOO says 45°F; physical min ~41°F.'},
   {key:'oatLock',label:'OAT single lockout',min:0,max:50,step:1,unit:'°F',desc:'Below this OAT, single-tower fan operation is locked out (freeze protection of the idle cell).'}
 ];
+var PROG_SPECS=[
+  {key:'sp',label:'Header supply setpoint',min:60,max:85,step:0.5,unit:'°F',desc:'Header supply setpoint (75 as running). The fan loop holds header supply here.'},
+  {key:'bypOffset',label:'Bypass SP below supply SP',min:0,max:20,step:0.5,unit:'°F',desc:'The bypass loop holds header supply at setpoint minus this (10 → 65°F as running; a comment in the program says −5).'},
+  {key:'bypMax',label:'Bypass max opening',min:0,max:100,step:1,unit:'%',desc:'High limit of both bypass loops (50 % as running). At 50 % the bypass already takes ~3/4 of the flow; the model has tower flow stopping near 60 % (extrapolated past the 52 % in the data).'},
+  {key:'fanMinSpd',label:'Fan minimum running speed',min:0,max:60,step:0.01,dec:1,unit:'%',factor:0.01,desc:'Speed of a running fan at loop output 0 %: the output table maps 0..100 % to 3.33..10 V, i.e. ~33 % (20 Hz) as running. Lower it to see whether the fans stop short-cycling.'},
+  {key:'fanOnLoop',label:'Fan start: loop above',min:0,max:30,step:0.5,unit:'%',desc:'A cell\'s fan starts when the fan loop rises above this (5 % as running), its riser ISO is open and the bypass is under 5 %.'},
+  {key:'fanOffLoop',label:'Fan stop: loop below',min:0,max:20,step:0.5,unit:'%',desc:'A fan stops when the loop falls below this (1 % as running), its riser ISO closes or the bypass passes 10 %.'},
+  {key:'fanMinOff',label:'Fan minimum off time',min:0,max:900,step:15,unit:'s',desc:'Not in the running program (0): it sets a 60 s minimum-off setpoint but never uses it. Raise it to test an anti-short-cycle delay.'},
+  {key:'winterOAT',label:'Winter mode below OAT',min:20,max:60,step:1,unit:'°F',desc:'Winter mode on below this outdoor-sensor reading (40 as running), off 5°F above it.'},
+  {key:'oatBias',label:'Outdoor sensor bias',min:-5,max:8,step:0.1,dec:1,unit:'°F',desc:'How far the controller\'s outdoor sensor reads above the true OAT: +1.8°F against an on-site weather station since the sensor was moved (RMS 3.1, worse in calm air), +4.5°F before. Winter mode, the makeup level-fail timer and the design SOO\'s single-cell lockout all see OAT + this; the building load and tower don\'t.'},
+  {key:'wintLeaveSP',label:'Winter tower-leaving min',min:35,max:65,step:0.5,unit:'°F',desc:'Winter mode (50 as running): the bypass can only open as far as keeps the towers\' leaving water at or above this.'},
+  {key:'ctFlowMin',label:'Cell counts as flowing above',min:0,max:300,step:5,unit:'gpm',desc:'50 as running: which cells\' leaving temps the winter loop averages.'},
+  {key:'dp3SP',label:'3rd-floor DP setpoint',min:4,max:14,step:0.1,unit:'psi',desc:'9 as running. The outer cascade loop resets the header DP setpoint to hold this.'},
+  {key:'hdrSPmin',label:'Header DP setpoint min',min:0,max:20,step:0.5,unit:'psi',desc:'Lowest header DP setpoint the cascade can ask for (9 as running).'},
+  {key:'hdrSPmax',label:'Header DP setpoint max',min:5,max:40,step:0.5,unit:'psi',desc:'Highest header DP setpoint the cascade can ask for (20 as running).'},
+  {key:'pumpRampSec',label:'Pump start ramp to 100 %',min:31,max:300,step:1,unit:'s',desc:'120 s as running: an incoming pump is held to 25 % for its first 30 s, then may ramp to 100 % by this many seconds after start.'}
+];
+var PROG_PID_SPECS=[   // in the controller's own loop units: Kp = PG/1000, Ki = IG/1000 per second (the model runs per minute: IG x 0.06)
+  {key:'ppFanKp',label:'Fan loop PG',min:0,max:10000,step:10,dec:0,factor:0.001,desc:'Fan loop proportional gain as entered in the controller: 2000 = 2 % of loop output per °F off setpoint. The fall trends identified 1.86 %/°F on their own.'},
+  {key:'ppFanKi',label:'Fan loop IG',min:0,max:100,step:0.5,dec:1,factor:0.06,desc:'Fan loop integral gain as entered: 20 = 1.2 % per °F per minute (identified 1.01).'},
+  {key:'ppBypKp',label:'Bypass loops PG',min:0,max:3000,step:10,dec:0,factor:0.001,desc:'The bypass loop and the winter bypass-limit loop: 150 = 0.15 % of bypass per °F.'},
+  {key:'ppBypKi',label:'Bypass loops IG',min:0,max:100,step:0.5,dec:1,factor:0.06,desc:'Integral gain of both bypass loops: 7.5 = 0.45 % per °F per minute.'},
+  {key:'ppDpOKp',label:'DP outer PG',min:0,max:10000,step:50,dec:0,factor:0.001,desc:'3rd-floor DP → header DP setpoint, written into the LOOP statement: 3000 = 3 psi of header setpoint per psi at the 3rd floor.'},
+  {key:'ppDpOKi',label:'DP outer IG',min:0,max:50,step:0.5,dec:1,factor:0.06,desc:'Outer cascade integral gain: 5 = 0.3 psi per psi per minute.'},
+  {key:'ppDpIKp',label:'DP inner PG',min:0,max:3000,step:10,dec:0,factor:0.001,desc:'Header DP → pump speed: 100 = 0.1 % speed per psi. A slow inner loop.'},
+  {key:'ppDpIKi',label:'DP inner IG',min:0,max:50,step:0.5,dec:1,factor:0.06,desc:'Inner cascade integral gain: 5 = 0.3 % per psi per minute.'}
+];
+function setSeq(s){
+  if(s==='prog'&&CFG.seq!=='prog'){                          // bumpless: pick up the running pump and speed
+    C.seq=(CFG.pump==='CTP-2')?21:12; var l=(C.seq===21)?1:0;
+    C.pRun=[l===0,l===1]; C.pOnT=[l===0?1e6:0,l===1?1e6:0]; C.pOffT=[l===0?0:1e6,l===1?0:1e6];
+    C.pSpd=[l===0?C.pumpSpeed:0,l===1?C.pumpSpeed:0]; C.pDpI.i=C.pumpSpeed*100/CFG.ppDpIKi; C.hold=0;
+  }
+  CFG.seq=s;
+  var pp=(s==='prog');
+  setActive(['btn_seq_prog','btn_seq_soo'],pp?'btn_seq_prog':'btn_seq_soo');
+  ['sec_prog','note_prog','sec_pid_prog'].forEach(function(id){document.getElementById(id).style.display=pp?'':'none';});
+  ['sec_enables','sec_sp','sec_pid'].forEach(function(id){document.getElementById(id).style.display=pp?'none':'';});
+  document.getElementById('btn_rot').style.display=pp?'':'none';
+  document.getElementById('lead_tower_grp').style.display=pp?'none':'';   // one program loop drives both fans: no lead cell
+  syncFanSubs();
+  document.getElementById('spark_cap').textContent=pp
+    ?'Supply trend (blue) vs the header setpoint (green) and the bypass target, setpoint − offset (amber)'
+    :'Supply trend (blue) vs setpoint (green) and the WSHP low limit (red)';
+  document.getElementById('spark_low').setAttribute('stroke',pp?'#ba7517':'#c0392b');
+  document.getElementById('flag_low').title=pp
+    ?'Supply is below the WSHP low limit (CWS low limit, 50 °F). The running program has no low-limit action: only the bypass loop and winter mode hold the supply up.'
+    :'Supply is below the low limit: the design sequence stops the fans and opens the warming bypass (when its low-limit stage is enabled).';
+  document.getElementById('flag_frz').title=pp
+    ?'A wet basin is below the freeze temperature. The running program has no freeze trip.'
+    :'A wet basin is below the freeze temperature: the design sequence stops the fans and closes the bypass to flush the fill (when its freeze stage is enabled).';
+}
+// fan sublabels in the manual panel: lead / lag under the design-SOO staging, one shared loop under the program
+function syncFanSubs(){
+  var pp=CFG.seq==='prog', li=(CFG.leadTower==='CT-2')?1:0;
+  ['fan1','fan2'].forEach(function(k,i){ var e=document.getElementById('act_sub_'+k); if(e)e.textContent=pp?'fan loop':(i===li?'lead':'lag'); });
+}
+function buildSeq(){
+  var el=document.getElementById('sec_seq');
+  var lab=document.createElement('span'); lab.textContent='Sequence:'; el.appendChild(lab);
+  [['btn_seq_prog','Running program','prog','The program running on the tower controller (fall snapshot).'],
+   ['btn_seq_soo','Design SOO','soo','The documented sequence of operations: lead/lag staging, 10 % min fan, bypass hold/close, freeze and WSHP low-limit trips, 50 % pump floor.']]
+   .forEach(function(b){var e=document.createElement('button'); e.id=b[0]; e.textContent=b[1]; e.title=b[3]; e.onclick=function(){setSeq(b[2]);}; el.appendChild(e);});
+}
+function toggleRot(){ CFG.pumpRot=(CFG.pumpRot==='weekly')?'manual':'weekly'; syncRot(); }
+function syncRot(){ var b=document.getElementById('btn_rot'); b.classList.toggle('on',CFG.pumpRot==='weekly'); b.textContent=(CFG.pumpRot==='weekly')?'Weekly swap: Tue 10:00':'Weekly swap: off'; }
 var TOWER_SPECS=[
-  {key:'epsMax',label:'Tower eps_max',min:0.30,max:0.80,step:0.005,dec:3,desc:'Design effectiveness at full fan + nominal flow (~0.588, tower nameplate). Anchors the e-NTU curve.'},
+  {key:'epsMax',label:'Tower eps_max',min:0.30,max:0.80,step:0.001,dec:3,desc:'Effectiveness at full fan + the 846 gpm reference flow; anchors the e-NTU curve. 0.556, fit to the fall trends with the other tower knobs (was 0.588, the catalog 95→85 @ 78 WB). With the fitted knobs the certified selection point (918 gpm/cell, 74°F WB) leaves 85.5°F vs certified ~85°F.'},
   {key:'minLeave',label:'Min leaving water',min:33,max:55,step:0.5,unit:'°F',desc:'Cold-weather floor — coldest the FLOWING tower water can reach. Open water can’t go below freezing and the tower is run ≥43°F (manufacturer min) to avoid icing; the old towers floored in the low 40s at this flow. Stops winter runs from integrating to absurd sub-freezing temps.'},
-  {key:'fanExp',label:'NTU airflow exponent',min:0.4,max:1.1,step:0.05,dec:2,desc:'How tower capacity scales with fan speed: NTU ∝ speed^this (~0.6). Lower = less fan-sensitive.'},
-  {key:'wlExp',label:'Water-load / overload derate',min:0,max:2.6,step:0.05,dec:2,desc:'Effectiveness derate when a cell runs above its nominal flow (overloaded). 1.05 fit to the single overloaded cell.'},
-  {key:'wlRef',label:'Water-load ref',min:400,max:1200,step:10,unit:'gpm',desc:'Per-cell flow where the overload derate starts (per-cell nominal ~846 gpm).'},
-  {key:'fanFloor',label:'Natural-draft airflow (fan off)',min:0,max:0.4,step:0.005,dec:3,desc:'Airflow fraction with the fan OFF (stack/natural draft) — sets fan-off winter cooling. 0.05.'},
-  {key:'apprMin',label:'Min approach to WB',min:0,max:12,step:0.5,unit:'°F',desc:'Closest the leaving water gets to wet-bulb at low load (~3.5°F). Prevents over-cooling toward WB.'},
-  {key:'airCap',label:'Air-side reject cap',min:20,max:120,step:1,unit:'t/(Btu/lb)',desc:'Air-side (Merkel) heat-rejection limit at full fan. At low fan the choked fill is airflow-limited, so leaving water pins near a floor and the approach widens as wet-bulb drops. Lower = more airflow-limited.'},
+  {key:'fanExp',label:'NTU airflow exponent',min:0.4,max:1.5,step:0.002,dec:3,desc:'How tower capacity scales with fan speed: NTU ∝ speed^this. 0.792, fit to the Sept–Oct trends (was 0.6). Lower = less fan-sensitive.'},
+  {key:'wlExp',label:'Water-load exponent',min:0,max:2.6,step:0.01,dec:2,desc:'NTU ∝ (ref flow / cell flow)^this: derates an overloaded cell, and (up to the cap below) helps a lightly loaded one. 1.11, fit to the Sept–Oct trends.'},
+  {key:'wlCap',label:'Water-load gain cap',min:1,max:2.5,step:0.01,dec:2,desc:'Most a lightly loaded cell can gain from the water-loading term. 1.0 = no gain below the reference flow (the old assumption); 1.07 fit to the Sept–Oct trends.'},
+  {key:'wlRef',label:'Water-load ref',min:400,max:1200,step:1,unit:'gpm',desc:'Per-cell flow where the overload derate starts (catalog nominal 846 gpm; as-sold certified selection 918 gpm/cell).'},
+  {key:'loneFanLoss',label:'Lone-cell fan loss',min:0,max:0.4,step:0.01,dec:2,desc:'With only one cell in service, its fan behaves as (speed − this)/(1 − this): it loses a slice of its air at low speed. 0.15, fit to the August–September single-cell trends (heat rejected at 33–45 % fan was 50 % over without it). Mechanism unknown: air through the idle neighbour, or the overloaded cell curtaining its inlet face. 0 = off.'},
+  {key:'fanFloor',label:'Natural-draft airflow (fans off)',min:0,max:0.4,step:0.001,dec:3,desc:'Airflow fraction with the fans OFF (stack/natural draft), for the whole tower — split across the wetted cells, because two wet cells with fans off reject the same heat as one (the unit sits against a wall, open only front and top). 0.079 with the fitted air-side cap (fans-off rejection ∝ this × the cap, fit to 31k fans-off Sept–Oct polls); it rises with wind (not modeled). Sets fans-off winter cooling.'},
+  {key:'apprMin',label:'Min approach to WB',min:0,max:12,step:0.5,unit:'°F',desc:'Closest the leaving water gets to wet-bulb at low load (3.5°F, fit to the 24-hr data). Prevents over-cooling toward WB.'},
+  {key:'airCap',label:'Air-side reject cap',min:10,max:120,step:0.2,dec:1,unit:'t/(Btu/lb)',desc:'Air-side (Merkel) heat-rejection limit per cell at full fan, scaled by airflow. At low fan the fill is airflow-limited, so leaving water pins near a floor and the approach widens as wet-bulb drops; it is also why two cells beat one at the same fan speed. 29.6, fit to the Sept–Oct trends (was 51, fit to a June 45 Hz run); lower = more airflow-limited.'},
   {key:'fanFixed',label:'Fan fixed-loss fraction',min:0,max:0.4,step:0.02,dec:2,desc:'Per-running-fan fixed electrical loss (VFD/motor idle + low-speed inefficiency) as a fraction of nameplate. Why running two fans costs more at low load (lead/lag vs balanced).'}
 ];
 var HYD_SPECS=[
-  {key:'kser',label:'k_series',min:0.5,max:6.0,step:0.05,unit:'×1e-5',factor:1e-5,dec:2,desc:'Building-loop flow resistance (dominant term) — sets flow vs pump speed. Fit to the field pump-speed sweep.'},
+  {key:'kser',label:'k_series',min:0.5,max:6.0,step:0.01,unit:'×1e-5',factor:1e-5,dec:2,desc:'Building-loop flow resistance (dominant term) — sets flow vs pump speed. Fit to the fall trends: 3.87e-5 (both cells at 60.5% → ~975 gpm on the tower meters). Since late summer the loop has run ~1.9× the early-summer fit (1.88e-5, 1230 gpm at 60%); it drifts ±8%, higher at low load.'},
+  {key:'cellSplit',label:'CT-1 / CT-2 flow split',min:0.8,max:1.3,step:0.001,dec:3,desc:'CT-1 flow ÷ CT-2 flow with both risers open: 1.089 in the Aug–Oct trends with either pump and at any flow. Set by the risers and hot-water distribution (the basins are coupled through the shared suction, which only sets the ~1.2″ level offset), so CT-2\'s return path is the stiffer one.'},
   {key:'kcell',label:'k_tower/cell',min:0.5,max:10,step:0.1,unit:'×1e-6',factor:1e-6,dec:1,desc:'Per-cell tower-branch flow resistance.'},
-  {key:'static',label:'Static head',min:0,max:40,step:1,unit:'ft',desc:'Net static lift the pump sees: the OPEN-TOWER lift (~15 ft, basin level up to the tower distribution). The building loop down to the floors is a recovered siphon, but the open tower at the top breaks it — also why the pump deadheads below ~30%.'},
-  {key:'kdp',label:'k_dp',min:1,max:12,step:0.05,unit:'×1e-6',factor:1e-6,dec:2,desc:'3rd-floor remote DP vs flow: DP(psi)=k·Q². Anchored to the measured DP at field flow.'},
-  {key:'cvByp',label:'Bypass Cv (full)',min:200,max:1500,step:25,desc:'Flow coefficient of the 6" warming bypass at 100% open (sets how much it short-circuits).'}
+  {key:'static',label:'Static head',min:0,max:40,step:1,unit:'ft',desc:'Net static lift the pump sees: the OPEN-TOWER lift (~15 ft, basin level up to the tower distribution). The building loop down to the floors is a recovered siphon, but the open tower at the top breaks it — also why the pump deadheads below ~30% with the bypass shut. The lift is on the tower risers only: the bypass tees off the main return inside, below where the risers go out the wall and up, so it skips the lift.'},
+  {key:'kdp',label:'k_dp',min:1,max:12,step:0.001,unit:'×1e-6',factor:1e-6,dec:2,desc:'3rd-floor remote DP vs flow: DP(psi)=k·Q². Fit to 9.5 psi @ 980 gpm (the fall median); was 7.75 psi @ 1230 gpm in early summer.'},
+  {key:'cvByp',label:'Bypass Cv (full)',min:200,max:1500,step:10,desc:'Effective flow coefficient of the 6" warming bypass (valve + piping) at 100% open. 940, fit to the Sept–Oct trends at 5–52% open and extrapolated above that (the valve submittal lists Cv 757). Because the bypass skips the ~15 ft open-tower lift, a half-open bypass takes ~3/4 of the flow.'},
+  {key:'bypN',label:'Bypass valve curve',min:1,max:3,step:0.05,dec:2,desc:'Butterfly characteristic: Cv = Cv(full) × position^this. 1.9 fit to the field data (≈⅓ of full Cv at 50% open); 1 = linear.'}
 ];
 var PID_SPECS=[
   {key:'fanKp',label:'Fan Kp',min:0,max:1,step:0.01,dec:2,desc:'Proportional gain of the fan-staging PID (CWS → fan speed).'},
@@ -925,21 +1213,33 @@ var PID_SPECS=[
   {key:'dpKp',label:'DP Kp',min:0,max:0.1,step:0.002,dec:3,desc:'Proportional gain of the pump DP PID (3rd-floor DP → pump speed).'},
   {key:'dpKi',label:'DP Ki',min:0,max:0.06,step:0.002,dec:3,desc:'Integral gain of the pump DP PID (directional anti-windup).'}
 ];
+var WATER_SPECS=[
+  {key:'lvlSP',label:'Makeup stops at',min:12,max:20,step:0.1,dec:1,unit:'in',desc:'The makeup closes above this CT-1 level and opens below SP − band (17″ / 16″ as running). The overflow is at 21″; below ~11″ the outlet pulls air.'},
+  {key:'lvlDB',label:'Makeup band',min:0.2,max:3,step:0.1,dec:1,unit:'in',desc:'How far below the setpoint the makeup opens. The running program hard-codes 1.0 (SP − 1.0); 1.5″ would cut the fills by about a third.'},
+  {key:'mkpGPM',label:'Makeup flow',min:0,max:40,step:0.1,dec:1,unit:'gpm',desc:'Into the pump discharge: ~14 gpm as piped now; 9.7 through the full installed path (meter and PRV in line); ~20–24 after a planned 1″ rebuild.'},
+  {key:'mkpT',label:'Makeup water temperature',min:35,max:80,step:0.5,dec:1,unit:'°F',desc:'At the tie-in. The fall fills read like ~70 °F water (66–73 by fortnight, cooling into late October); city water is far colder in winter.'},
+  {key:'mkpPlume',label:'Header sensor makeup plume',min:0,max:1,step:0.01,dec:2,desc:'Share of makeup water the header supply sensor sees during a fill: it sits next to the tie-in, so it reads supply − this × (supply − makeup temp), and the program\'s fan and bypass loops act on that. 0.25 from the fall fills (−1 to −3 °F at 74–78 °F supply). Set 0 to model the sensor moved 10+ diameters downstream.'},
+  {key:'evapFrac',label:'Evaporated share of heat',min:0.4,max:1,step:0.01,dec:2,desc:'Basin loss = this × the all-latent evaporation of the heat rejected (24 × tons ÷ 1051 gpm) + the constant loss. 0.74 from the October drawdowns (August–September windows gave 0.67–0.84, rising with wet bulb).'},
+  {key:'waterLoss',label:'Constant water loss',min:0,max:20,step:0.05,dec:2,unit:'gpm',desc:'Splash, blowdown, drift and leaks: 0.45 gpm in October. Set ~12 to replay a CRAC override that drained tower water to sewer.'},
+  {key:'holdK',label:'Tower holdup',min:0,max:0.8,step:0.001,dec:3,unit:'gal/gpm',desc:'Water on each cell\'s hot-water basin and fill per gpm through it (0.343: ~158 gal at 460 gpm). It drains to the cold basin when the flow drops: a bypass step to 50 % gave +220 gal with no makeup.'},
+  {key:'ct2LvlK',label:'CT-2 level offset',min:0,max:10,step:0.1,dec:1,unit:'″ per (1000 gpm)²',factor:1e-6,desc:'CT-2\'s basin rides above CT-1\'s by this × (CT-2 draw ÷ 1000)²: the friction of its longer outlet run (4.7 → ~1.1″ at 480 gpm). Day to day it also drifts 0.6–1.35″ at the same flow, not modeled.'}
+];
 var AMB_SPECS=[
   {key:'load',label:'Loop load',min:-200,max:900,step:10,unit:'tons',desc:'Net heat on the condenser-water loop (+ cooling, - heating). Driven by the slider in manual mode, or computed from weather in building mode.'},
-  {key:'wb',label:'Wet-bulb',min:35,max:82,step:1,unit:'°F',desc:'Outdoor wet-bulb — the temperature the open tower can approach. Set by the live METAR feed when enabled.'},
+  {key:'wb',label:'Wet-bulb',min:35,max:82,step:1,unit:'°F',desc:'Outdoor wet-bulb — the temperature the open tower can approach. Set by the live weather feed when enabled.'},
   {key:'oat',label:'OAT',min:0,max:100,step:1,unit:'°F',desc:'Outdoor air dry-bulb. Drives the economizer changeover and the building load in building mode.'}
 ];
 var BLD_SPECS=[
-  {key:'base24',label:'24/7 base load',min:0,max:220,step:5,unit:'tons',desc:'Always-on load: CRAC/IT (IT-A 2x20 + IT-B 4 + IT-C 2) + 24/7 heat pumps + after-hours. The overnight floor (~75 t).'},
-  {key:'occBase',label:'Occupied AHU floor',min:0,max:450,step:10,unit:'tons',desc:'AHU compressor load during occupied hours from internal gains + ventilation — stays ~flat vs OAT (high even on cool mornings). The weekday-morning step.'},
-  {key:'ahuPeak',label:'AHU hot-day max',min:0,max:700,step:10,unit:'tons',desc:'Hot-day AHU cooling; the weather term only exceeds the occupied floor on warm days toward design (~88F).'},
-  {key:'ahuMin',label:'AHU residual (econ)',min:0,max:120,step:5,unit:'tons',desc:'Interior-zone cooling the AHUs still reject while economizing (compressors off).'},
-  {key:'hpHeat',label:'Heat-pump peak heating',min:0,max:150,step:5,unit:'tons',desc:'Diversified WSHP heat pulled FROM the loop in cold weather (drives the load negative).'},
-  {key:'balOAT',label:'Cooling balance OAT',min:45,max:65,step:1,unit:'°F',desc:'OAT below which the building flips toward net heating (heating demand grows).'},
-  {key:'designOAT',label:'Design cooling OAT',min:80,max:95,step:1,unit:'°F',desc:'OAT at which the hot-day AHU cooling term reaches 100%.'},
-  {key:'econOAT',label:'Economizer OAT limit',min:50,max:70,step:1,unit:'°F',desc:'AHUs free-cool (compressors off) below this OAT, provided enthalpy is also below its limit.'},
-  {key:'econEnth',label:'Economizer enthalpy limit',min:15,max:28,step:0.5,unit:'Btu/lb',desc:'AHUs free-cool below this OA enthalpy (~19 Btu/lb here), provided OAT is also below its limit.'}
+  {key:'base24',label:'24/7 base load',min:0,max:150,step:1,unit:'tons',desc:'Loop heat with no AHU compressor running, before pump heat (the sim adds that itself): CRAC/IT, heat pumps, after-hours. Fall trends: ~32 t, flat from 50 to 70 °F OAT.'},
+  {key:'stgTons',label:'Loop heat per stage',min:5,max:25,step:0.1,dec:1,unit:'tons',desc:'Heat each compressor stage running puts on the loop, compressor heat included (so no ×1.2 on top). Aug–Oct: 13.8 t per stage, R² 0.94.'},
+  {key:'stgAvail',label:'Stages available',min:0,max:30,step:1,unit:'stages',desc:'Compressor stages that can run: 30 installed (two per AHU, a second pair on one, two on a water-cooled unit) less one unit normally off. Lower it for units down.'},
+  {key:'econOAT',label:'Economizer OAT limit',min:50,max:70,step:0.1,dec:1,unit:'°F',desc:'AHUs economize (no compressors) below this OAT AND below the enthalpy limit. The units\' setpoint is 60 °F on their own OA sensor; against true outdoor air they switch at 60.8 °F.'},
+  {key:'econEnth',label:'Economizer enthalpy limit',min:15,max:28,step:0.1,dec:1,unit:'Btu/lb',desc:'AHUs economize below this OA enthalpy AND below the OAT limit; above it they lock out to minimum OA and the compressors carry return air. The units\' setpoint is 19 Btu/lb on their own sensor, which reads about 2.1 Btu/lb low (they switch at 19.9 on it); against true outdoor air they switch at 22.1.'},
+  {key:'stgLock0',label:'Stages at lockout',min:0,max:20,step:0.1,dec:1,unit:'stages',desc:'Locked-out AHUs at 20 Btu/lb OA: stages = available × (1 − e^(−x/available)), x = this + (stages per Btu/lb) × (h − 20). Fit to Aug–Oct weekdays.'},
+  {key:'stgLockK',label:'Stages per Btu/lb',min:0,max:6,step:0.01,dec:2,unit:'/(Btu/lb)',desc:'How fast locked-out stages climb with OA enthalpy before they saturate at the stages available. Fit: 2.55 (certified 74 °F WB → ~23 stages, ~360 t).'},
+  {key:'afterHrs',label:'After-hours share',min:0,max:0.5,step:0.001,dec:3,desc:'Nights and weekends: tenant overrides run this share of the occupied stages (Aug–Oct 0.051, ~0.6 stages).'},
+  {key:'hpHeat',label:'Heat-pump peak heating',min:0,max:150,step:1,unit:'tons',desc:'WSHP heat pulled FROM the loop at the design heating OAT (10 °F). Fit to fall nights down to 37 °F (~21 t), so 10 °F is an extrapolation: deep-winter net stays ~+11 t plus pump heat.'},
+  {key:'balOAT',label:'Heat-pump heating below',min:45,max:65,step:1,unit:'°F',desc:'OAT below which the heat pumps start pulling heat from the loop, growing to the peak at the design heating OAT (10 °F). Assumed: no heating-season data yet.'}
 ];
 var ACT_SPECS=[
   {ov:'pump',man:'pump',label:'Pump',sub:'speed',min:0,max:100,step:1,unit:'%',factor:0.01},
@@ -951,11 +1251,11 @@ function buildActuators(){
   var el=document.getElementById('sec_manual');
   ACT_SPECS.forEach(function(s){
     var row=document.createElement('div'); row.className='actrow';
-    var nm=document.createElement('div'); nm.className='nm'; nm.innerHTML=s.label+'<small>'+s.sub+'</small>';
+    var nm=document.createElement('div'); nm.className='nm'; nm.innerHTML=s.label+'<small id="act_sub_'+s.ov+'">'+s.sub+'</small>';
     var seg=document.createElement('div'); seg.className='seg';
     var bA=document.createElement('button'), bH=document.createElement('button');
     bA.textContent='AUTO'; bH.textContent='HAND';
-    bA.title='Let the documented sequence drive this actuator.'; bH.title='Override: drive this actuator from the manual slider — wins over the sequence (including safety).';
+    bA.title='Let the selected sequence (running program or design SOO) drive this actuator.'; bH.title='Override: drive this actuator from the manual slider — wins over the sequence (including safety).';
     var f=s.factor||1;
     var sl=document.createElement('div'); sl.className='actslider';
     var top=document.createElement('div'); top.className='ctop';
@@ -991,12 +1291,19 @@ function buildEnables(){
 }
 function setActive(ids,a){ids.forEach(function(id){var e=document.getElementById(id);var on=(id===a);e.classList.toggle('btn',true);e.style.background=on?'var(--info-bg)':'';e.style.color=on?'var(--info-tx)':'';e.style.borderColor=on?'var(--info-bd)':'';});}
 function setMode(m){CFG.mode=m; setActive(['btn_dual','btn_single','btn_shut'], m==='dual'?'btn_dual':(m==='single'?'btn_single':'btn_shut'));}
-function setPump(p){CFG.pump=p; setActive(['btn_ctp1','btn_ctp2'],p==='CTP-1'?'btn_ctp1':'btn_ctp2');}
-function setLeadTower(t){CFG.leadTower=t; setActive(['btn_lt1','btn_lt2'],t==='CT-1'?'btn_lt1':'btn_lt2');}
+function setPump(p){
+  if(CFG.seq==='prog'){ if((p==='CTP-2')!==(C.seq===21))progSwap(); }   // manual alternation under the program: flip SEQ and run the swap
+  else CFG.pump=p;
+  setActive(['btn_ctp1','btn_ctp2'],p==='CTP-1'?'btn_ctp1':'btn_ctp2');
+}
+var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function setLeadTower(t){CFG.leadTower=t; setActive(['btn_lt1','btn_lt2'],t==='CT-1'?'btn_lt1':'btn_lt2'); syncFanSubs();}
 function setLoadSource(s){ CFG.loadSource=s; if(SLIDER_INPUT.load)SLIDER_INPUT.load.disabled=(s==='building'); setActive(['btn_lman','btn_lbld'], s==='manual'?'btn_lman':'btn_lbld'); }
 function fmtClock(){
   var t=Math.round(CFG.todMin), h=Math.floor(t/60), m=((t%60)+60)%60;
-  return (CFG.weekday?'Weekday':'Weekend')+' '+(h<10?'0':'')+h+':'+(m<10?'0':'')+m+' · occupancy '+Math.round(occupancy()*100)+'%';
+  var s=DOW[CFG.dow]+' '+(h<10?'0':'')+h+':'+(m<10?'0':'')+m+' · occupancy '+Math.round(occupancy()*100)+'%';
+  if(CFG.loadSource==='building'&&S.bld) s+=' · '+S.bld.stages.toFixed(1)+' stages · '+Math.round(S.bld.econ*100)+'% of AHUs economizing';
+  return s;
 }
 function buildClock(){
   var el=document.getElementById('sec_bld'); if(!el)return;
@@ -1005,9 +1312,9 @@ function buildClock(){
   var ti=document.createElement('input'); ti.type='range'; ti.id='clock_in'; ti.min=0; ti.max=1435; ti.step=5; ti.value=Math.round(CFG.todMin); ti.style.flex='1';
   ti.title='Time of day for the occupancy schedule. Advances as the sim runs — set it (e.g. 04:50) and run to watch the staggered weekday AHU startup (05:00-06:15).';
   ti.oninput=function(){CFG.todMin=+ti.value; document.getElementById('clock_lbl').textContent=fmtClock();};
-  var wd=document.createElement('button'); wd.id='btn_wkday'; wd.className='tog'; wd.title='Weekday (M-F): AHUs scheduled 05:00-18:00. Off = weekend (AHUs off; CRAC/HP base only).';
-  function ws(){wd.classList.toggle('on',CFG.weekday); wd.textContent=CFG.weekday?'Weekday':'Weekend';}
-  wd.onclick=function(){CFG.weekday=!CFG.weekday; ws(); document.getElementById('clock_lbl').textContent=fmtClock();};
+  var wd=document.createElement('button'); wd.id='btn_wkday'; wd.className='tog'; wd.title='Day of week (click to advance). Mon-Fri: AHUs scheduled 05:00-18:00; weekend: AHUs off (CRAC/HP base only). The running program swaps pumps Tuesday 10:00.';
+  function ws(){wd.classList.toggle('on',CFG.weekday); wd.textContent=DOW[CFG.dow];}
+  wd.onclick=function(){CFG.dow=(CFG.dow+1)%7; CFG.weekday=(CFG.dow>=1&&CFG.dow<=5); ws(); document.getElementById('clock_lbl').textContent=fmtClock();};
   ws(); wrap.appendChild(rd); wrap.appendChild(ti); wrap.appendChild(wd); el.insertBefore(wrap, el.firstChild);
 }
 function buildLoadCtl(){
@@ -1015,13 +1322,15 @@ function buildLoadCtl(){
   var wrap=document.createElement('div'); wrap.style.cssText='display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 8px';
   var lab=document.createElement('span'); lab.textContent='Load source:'; lab.style.cssText='font-size:12.5px';
   var bm=document.createElement('button'); bm.id='btn_lman'; bm.className='tog'; bm.textContent='manual'; bm.title='Drive the loop load from the slider below.'; bm.onclick=function(){setLoadSource('manual');};
-  var bb=document.createElement('button'); bb.id='btn_lbld'; bb.className='tog'; bb.textContent='building (weather)'; bb.title='Compute the loop load from OAT/WB using the building HVAC inventory: CRAC floor + economizer-gated AHU cooling + bidirectional heat pumps. Pairs with Live weather.'; bb.onclick=function(){setLoadSource('building');};
+  var bb=document.createElement('button'); bb.id='btn_lbld'; bb.className='tog'; bb.textContent='building (weather)'; bb.title='Compute the loop load from OAT/WB and the clock: 24/7 base + AHU compressor stages (economizer-gated, fit to the Aug–Oct trends) − heat-pump heating. Pairs with Live weather.'; bb.onclick=function(){setLoadSource('building');};
   wrap.appendChild(lab); wrap.appendChild(bm); wrap.appendChild(bb);
   el.insertBefore(wrap, el.firstChild);
 }
 function setSingleTower(t){CFG.singleTower=t; setActive(['btn_st1','btn_st2'],t==='CT-1'?'btn_st1':'btn_st2');}
 function toggleRun(){running=!running; document.getElementById('btn_run').textContent=running?'Pause':'Run';}
-function doReset(){S.Tcws=80;S.Tcwr=80;S.basin=[80,80];S.level=[1,1];S.hyd=null;S.q=0;S.tons=0;S.bhp=0;C.pumpSpeed=0;C.lead=0;C.lag=0;C.bypass=0;C.lagEnabled=false;C.tLeadSat=0;C.tBelow=0;C.fan.reset();C.byp.reset();C.dp.reset();cwsHist=fillArr();bldgHist=fillArr();spark=[];render();}
+function doReset(){S.Tcws=80;S.Tcwr=80;S.supSens=80;S.basin=[80,80];S.level=[17,18];S.hold=null;C.mkp=false;C.mkpOnT=0;C.mkpOffT=0;C.lvlFail=false;S.hyd=null;S.q=0;S.tons=0;S.bhp=0;C.pumpSpeed=0;C.lead=0;C.lag=0;C.bypass=0;C.lagEnabled=false;C.tLeadSat=0;C.tBelow=0;C.fan.reset();C.byp.reset();C.dp.reset();
+  [C.pFan,C.pByp,C.pWin,C.pDpO,C.pDpI].forEach(function(p){p.reset();}); C.pRun=[false,false]; C.pSpd=[0,0]; C.pOnT=[0,0]; C.pOffT=[1e6,1e6]; C.hold=0; C.ctSS=[false,false]; C.ctOffT=[1e6,1e6]; C.fanCell=[0,0];
+  cwsHist=fillArr();bldgHist=fillArr();spark=[];render();}
 
 // ================= live weather (local METAR station) =================
 // Drives the sim's OAT + wet-bulb from the real local METAR observation. The actual BAS still
@@ -1167,15 +1476,19 @@ function buildValves(){
 }
 
 // ================= init =================
-buildActuators(); buildEnables(); buildValves();
+buildActuators(); buildSeq(); buildEnables(); buildValves();
 buildSliders('sec_sp',SP_SPECS,CFG);
+buildSliders('sec_prog',PROG_SPECS,CFG);
 buildSliders('sec_tower',TOWER_SPECS,CFG);
 buildSliders('sec_hyd',HYD_SPECS,CFG);
+buildSliders('sec_water',WATER_SPECS,CFG);
+buildSliders('sec_pid_prog',PROG_PID_SPECS,CFG);
 buildSliders('sec_pid',PID_SPECS,CFG);
 buildSliders('sec_amb',AMB_SPECS,CFG);
 buildSliders('sec_bld',BLD_SPECS,CFG);
 buildWx(); buildLoadCtl(); buildClock();
 setMode(CFG.mode); setPump(CFG.pump); setSingleTower(CFG.singleTower); setLeadTower(CFG.leadTower); setLoadSource(CFG.loadSource);
+setSeq(CFG.seq); syncRot();
 step(); render();
 setInterval(function(){if(!running)return;var n=Math.max(1,Math.round(speed/DT));for(var i=0;i<n;i++)step();render();},100);
 requestAnimationFrame(frame);
