@@ -4,6 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Condenser-Water Loop — Control Bench (v5)</title>
+<meta name="description" content="A physics-based, single-file browser simulator of a commercial building's condenser-water loop: two evaporative cooling-tower cells and lead/standby pumps, the full tower-staging sequence of operations, and live power draw. Calibrated against real BAS field trends. Free and open source.">
+<link rel="canonical" href="https://jamesccupps.github.io/CoolingTowerSim/">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMic+PHJlY3Qgd2lkdGg9JzMyJyBoZWlnaHQ9JzMyJyByeD0nNicgZmlsbD0nIzFiMWExNycvPjxwYXRoIGQ9J005IDI3IFExMyAxNyAxMCA1IEgyMiBRMTkgMTcgMjMgMjcgWicgZmlsbD0nIzM3OGFkZCcvPjxwYXRoIGQ9J004IDI3IEgyNCcgc3Ryb2tlPScjZTA1MDUwJyBzdHJva2Utd2lkdGg9JzInLz48L3N2Zz4=">
+<meta name="theme-color" content="#1b1a17">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CUPPS.EXE">
+<meta property="og:title" content="Condenser-Water Loop — Control Bench">
+<meta property="og:description" content="Physics-based browser simulator of a building's condenser-water cooling loop: tower staging, setpoints and energy, calibrated against real BAS trends.">
+<meta property="og:url" content="https://jamesccupps.github.io/CoolingTowerSim/">
+<meta property="og:image" content="https://jamesccupps.github.io/CoolingTowerSim/docs/social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The control bench: two cooling towers, the condenser-water pumps and the building load, with supply, return, approach, flow, heat rejection and power draw.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Condenser-Water Loop — Control Bench">
+<meta name="twitter:description" content="Physics-based browser simulator of a building's condenser-water cooling loop: tower staging, setpoints and energy.">
+<meta name="twitter:image" content="https://jamesccupps.github.io/CoolingTowerSim/docs/social-card.png">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "WebApplication",
+ "name": "Condenser-Water Loop — Control Bench",
+ "url": "https://jamesccupps.github.io/CoolingTowerSim/",
+ "applicationCategory": "EducationalApplication",
+ "operatingSystem": "Any (web browser)",
+ "browserRequirements": "Requires JavaScript",
+ "description": "A physics-based, single-file browser simulator of a commercial building's condenser-water loop: two evaporative cooling-tower cells and lead/standby pumps, the full tower-staging sequence of operations, and live power draw. Calibrated against real BAS field trends. Free and open source.",
+ "isBasedOn": "https://github.com/jamesccupps/CoolingTowerSim",
+ "license": "https://opensource.org/licenses/MIT",
+ "author": {"@type": "Person", "name": "James Cupps", "url": "https://jamesccupps.github.io/"},
+ "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}
+</script>
 <style>
 :root{
   /* DARK MODE ALWAYS — the dark palette is applied unconditionally (no prefers-color-scheme branch),
@@ -489,6 +519,7 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
   <div class="note">Active when <b>Load source = building</b>. Loop load = 24/7 base + heat per stage &times; compressor stages running &minus; heat-pump heating. On weekdays 05:00&ndash;18:00 the AHUs run; each economizes with no compressor while OAT and OA enthalpy are under its limits, and once locked out its stages climb with enthalpy toward the stages available. After hours a small share runs on tenant overrides. Fit to August&ndash;October (AHU stages, loop flow &times; range, on-site weather): weekday daytime within ~40 t RMS, the rest is day-to-day (Mondays, units down). The heat-pump heating side is fit to fall nights down to 37 °F and extrapolated below. Hover any control for what it does.</div>
 </div></details>
 
+<p style="margin:18px 0 4px;font-size:11.5px;color:var(--text3)">Free and open source (MIT) &middot; <a style="color:var(--info-tx)" href="https://github.com/jamesccupps/CoolingTowerSim">source on GitHub</a> &middot; <a style="color:var(--info-tx)" href="https://jamesccupps.github.io/">more projects</a></p>
 </div>
 
 <script>
