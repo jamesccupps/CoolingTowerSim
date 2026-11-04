@@ -33,15 +33,15 @@ It's a model, best used for **relative** comparisons (this staging vs. that one,
 - **Hydraulics** — loop flow within −9 gpm on average (RMS 29 gpm), pump DP within 0.35 psi RMS.
 - **Tower** — fed the measured inlet, flow, fan speed and wet bulb, each cell's leaving water is within +0.12 °F on average (RMS 0.74 °F, ~52,000 steady polls); at the manufacturer's certified selection point it leaves 85.5 °F against the certified ~85 °F.
 - **Whole plant** — with the fans, pump and bypass forced to what was measured, supply runs 0.8 °F cold (RMS 2.9 °F); with the controller program running everything on the real setpoints, 0.5 °F cold (RMS 2.4 °F), pump speed within 0.9 % RMS, and as many makeup fills a day as the real plant.
-- **Building load** — 34 t RMS per poll and 20 t on daily means, with no bias.
-- **Hold-out** — on three days after the fit, data the model never saw: flow within +4 gpm (RMS 12), the tower alone within −0.1 °F (RMS 0.45 °F), makeup fills matched. With the fans off at ~50 t the whole loop ran 2 °F cold, which at that load is only ~2.6 t of heat: at light load a tiny heat imbalance moves the loop temperature a lot.
+- **Building load** — 31 t RMS per poll and 18 t on daily means, −4 t on average.
+- **Hold-out** — on three days after the fit, data the model never saw: flow within +4 gpm (RMS 12), the tower alone within −0.1 °F (RMS 0.45 °F), makeup fills matched. With the fans off at ~50 t the whole loop ran 2 °F cold, which at that load is only ~2.6 t of heat: at light load a tiny heat imbalance moves the loop temperature a lot. On 13 more days, after the controller's fan floor dropped to 17 % and its bypass ceiling to 30 %, the program replayed in AUTO held supply within −0.3 °F (RMS 2.8 °F) and the remote DP within 0.07 psi RMS, and the building load was within −0.4 t on average (RMS 20 t).
 
 Known limits:
 
 - **Cold weather is extrapolated** — the fit reaches the first winter-mode night (~35 °F) but has no sub-freezing data, so fans-off free cooling, the bypass in deep cold, freeze and the heat pumps' winter draw are provisional.
-- **The tower is weak below ~400 gpm per cell** — it's fit on 460–1,000 gpm per cell; in loss-of-flow hours (200–400 gpm, fans high) it rejects too little heat, and a wide-open bypass is the same regime.
+- **The tower is weak below ~400 gpm per cell** — it's fit on 460–1,000 gpm per cell; in loss-of-flow hours (200–400 gpm, fans high) it rejects too little heat, and a wide-open bypass is the same regime. Fan speeds under 33 % are newer than the fit: there the model leaves ~0.7 °F too cold.
 - **Loop resistance is fixed** — correct in form for this constant-flow building, but the measured resistance drifts about ±8 % with load and weather and the model doesn't follow it.
-- **The building-load model is a late-summer and fall fit** — it under-predicts warm, dry, sunny afternoons when the AHUs are locked out by dry bulb at low enthalpy (one hold-out afternoon ran ~60 t over the model), and the heat-pump heating side is extrapolated below 37 °F.
+- **The building-load model is a late-summer and fall fit** — locked-out AHUs carry a floor of stages and climb with outdoor enthalpy and dry bulb (a warm, dry hold-out afternoon showed the floor was missing); days when the units' own outdoor sensor reads low and they economize past the modeled limits still miss either way, and the heat-pump heating side is extrapolated below 37 °F.
 - **Basin levels** — the fill valve's stroke, the level sensor's lag and a slow day-to-day drift between the two basins aren't modeled.
 - **Quasi-steady thermal response** — steady-state behavior is the trustworthy part; transient accuracy isn't scored on its own.
 
