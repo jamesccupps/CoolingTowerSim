@@ -360,7 +360,7 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
   <line x1="249.9" y1="155.3" x2="380.1" y2="155.3" stroke="rgba(255,255,255,0.32)" stroke-width="0.8" stroke-dasharray="3 3" pointer-events="none"><title>Overflow, 21″</title></line>
   <text class="tag" x="112.6" y="103.4" text-anchor="middle" font-size="11">TOWER 1</text>
   <text class="tag" x="315.0" y="103.4" text-anchor="middle" font-size="11">TOWER 2</text>
-  <!-- fans (group id + rotation centre preserved) -->
+  <!-- fans (group id + rotation center preserved) -->
   <g id="fan1"><ellipse cx="112.6" cy="76.5" rx="29.7" ry="4.5" fill="rgba(0,0,0,0.16)" filter="url(#blur)"/><circle cx="112.6" cy="41.8" r="31.7" fill="url(#fanShroud)" stroke="var(--bd2)" stroke-width="2"/><circle cx="112.6" cy="41.8" r="27.2" fill="none" stroke="var(--bd3)" stroke-width="1"/>
   <g id="fan1b">
     <path d="M119.6 41.8 Q130.1 45.8 138.4 54.4" fill="none" stroke="var(--text2)" stroke-width="5.2" stroke-linecap="round"/>
@@ -384,7 +384,7 @@ hr.rule{height:2px;width:128px;background:linear-gradient(90deg,var(--info-bd),t
   <g id="cv2"><path class="equip" d="M422.4 364.1 L436.4 364.1 L422.4 382.1 L436.4 382.1 Z" stroke-width="1.5" fill="var(--bg1)"/></g>
   <g id="byp_box"><rect class="equip" x="38.0" y="402.4" width="12" height="18" rx="1" stroke-width="1.5" fill="var(--bg1)"/></g>
   <rect id="byp_fill" x="38.0" y="420.4" width="12" height="0" fill="#639922"/>
-  <!-- pumps (group id + rotation centre preserved) -->
+  <!-- pumps (group id + rotation center preserved) -->
   <g id="pump1"><ellipse cx="178.6" cy="496.1" rx="24" ry="5" fill="rgba(0,0,0,0.18)" filter="url(#blur)"/><rect x="197.6" y="465.1" width="12" height="14" rx="2.5" fill="url(#pumpBody)" stroke="var(--bd2)" stroke-width="1.5"/><circle cx="178.6" cy="472.1" r="22" fill="url(#pumpBody)" stroke="var(--bd2)" stroke-width="2"/>
   <g id="pump1b" stroke-linecap="round">
     <path d="M183.6 472.1 Q189.1 468.7 190.9 461.8" fill="none" stroke="var(--info-bd)" stroke-width="3" stroke-linecap="round"/>
@@ -676,7 +676,7 @@ function towerLeave(tin,qc,s,nWet){
   // never enhances below wlRef (the v4 assumption); above 1.0 a lightly loaded cell gains NTU.
   // A lone wet cell loses a slice of its fan's air at low speed: with one cell in service (Aug-Sep, the other drained)
   // the running fan behaves as (s - loneFanLoss)/(1 - loneFanLoss). Mechanism unknown -- air through the idle
-  // neighbour, or the overloaded cell (~1,000 gpm) curtaining its inlet face at low air velocity.
+  // neighbor, or the overloaded cell (~1,000 gpm) curtaining its inlet face at low air velocity.
   var sEff=((nWet||1)===1&&s>0)?Math.max(0,(s-CFG.loneFanLoss)/(1-CFG.loneFanLoss)):s;
   var G=Math.max(sEff,CFG.fanFloor/Math.max(1,nWet||1));     // airflow as a fraction of design
   var ntu0=-Math.log(1-Math.min(0.95,CFG.epsMax));           // anchored: full fan + nominal flow -> design eps
@@ -1223,7 +1223,7 @@ var TOWER_SPECS=[
   {key:'wlExp',label:'Water-load exponent',min:0,max:2.6,step:0.01,dec:2,desc:'NTU ∝ (ref flow / cell flow)^this: derates an overloaded cell, and (up to the cap below) helps a lightly loaded one. 1.11, fit to the Sept–Oct trends.'},
   {key:'wlCap',label:'Water-load gain cap',min:1,max:2.5,step:0.01,dec:2,desc:'Most a lightly loaded cell can gain from the water-loading term. 1.0 = no gain below the reference flow (the old assumption); 1.07 fit to the Sept–Oct trends.'},
   {key:'wlRef',label:'Water-load ref',min:400,max:1200,step:1,unit:'gpm',desc:'Per-cell flow where the overload derate starts (catalog nominal 846 gpm; as-sold certified selection 918 gpm/cell).'},
-  {key:'loneFanLoss',label:'Lone-cell fan loss',min:0,max:0.4,step:0.01,dec:2,desc:'With only one cell in service, its fan behaves as (speed − this)/(1 − this): it loses a slice of its air at low speed. 0.15, fit to the August–September single-cell trends (heat rejected at 33–45 % fan was 50 % over without it). Mechanism unknown: air through the idle neighbour, or the overloaded cell curtaining its inlet face. 0 = off.'},
+  {key:'loneFanLoss',label:'Lone-cell fan loss',min:0,max:0.4,step:0.01,dec:2,desc:'With only one cell in service, its fan behaves as (speed − this)/(1 − this): it loses a slice of its air at low speed. 0.15, fit to the August–September single-cell trends (heat rejected at 33–45 % fan was 50 % over without it). Mechanism unknown: air through the idle neighbor, or the overloaded cell curtaining its inlet face. 0 = off.'},
   {key:'fanFloor',label:'Natural-draft airflow (fans off)',min:0,max:0.4,step:0.001,dec:3,desc:'Airflow fraction with the fans OFF (stack/natural draft), for the whole tower — split across the wetted cells, because two wet cells with fans off reject the same heat as one (the unit sits against a wall, open only front and top). 0.079 with the fitted air-side cap (fans-off rejection ∝ this × the cap, fit to 31k fans-off Sept–Oct polls); it rises with wind (not modeled). Sets fans-off winter cooling.'},
   {key:'apprMin',label:'Min approach to WB',min:0,max:12,step:0.5,unit:'°F',desc:'Closest the leaving water gets to wet-bulb at low load (3.5°F, fit to the 24-hr data). Prevents over-cooling toward WB.'},
   {key:'airCap',label:'Air-side reject cap',min:10,max:120,step:0.2,dec:1,unit:'t/(Btu/lb)',desc:'Air-side (Merkel) heat-rejection limit per cell at full fan, scaled by airflow. At low fan the fill is airflow-limited, so leaving water pins near a floor and the approach widens as wet-bulb drops; it is also why two cells beat one at the same fan speed. 29.6, fit to the Sept–Oct trends (was 51, fit to a June 45 Hz run); lower = more airflow-limited.'},
