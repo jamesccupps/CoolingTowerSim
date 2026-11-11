@@ -1,4 +1,8 @@
-# Condenser-Water Loop — Control Bench
+# Cooling Tower Sim
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+**[▶ Run it in your browser](https://jamesccupps.github.io/CoolingTowerSim/)**: nothing to install.
 
 A physics-based, browser-based simulator of a commercial building's condenser-water cooling loop — two evaporative cooling-tower cells and lead/standby condenser-water pumps. One self-contained HTML file: no build, no dependencies, no backend.
 
